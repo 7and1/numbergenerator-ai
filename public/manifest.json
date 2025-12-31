@@ -1,0 +1,49 @@
+{
+  "name": "NumberGenerator.ai - Free Random Generators",
+  "short_name": "NumberGenerator",
+  "description": "Fast, secure random generators: numbers, passwords, PINs, dice, coins, and lottery picks. Works offline.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Random Number 1-100",
+      "short_name": "1-100",
+      "description": "Generate random number 1-100",
+      "url": "/1-100",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Strong Password",
+      "short_name": "Password",
+      "description": "Generate strong passwords",
+      "url": "/password-strong",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dice Roller",
+      "short_name": "Dice",
+      "description": "Roll virtual dice",
+      "url": "/dice-roller",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

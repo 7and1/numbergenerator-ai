@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 const COLORS = [
   "#111827", // zinc-900
@@ -19,7 +19,7 @@ const clampInt = (v: unknown, min: number, max: number, fallback: number) => {
   return Math.min(max, Math.max(min, n));
 };
 
-export default function WheelDisplay({
+const WheelDisplay = memo(function WheelDisplay({
   items,
   selectedIndex,
   resultTimestamp,
@@ -157,4 +157,7 @@ export default function WheelDisplay({
       </div>
     </div>
   );
-}
+});
+
+export default WheelDisplay;
+WheelDisplay.displayName = "WheelDisplay";

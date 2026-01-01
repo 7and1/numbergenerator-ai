@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { memo } from "react";
 import { CONFIG_MAP } from "@/lib/configMap";
 import type { ToolConfig } from "@/lib/types";
 import { Hash, Lock, Ticket, Box, Circle, List, Dice1 } from "lucide-react";
@@ -65,7 +66,7 @@ interface ToolLinkProps {
   tool: ToolConfig;
 }
 
-function ToolLink({ tool }: ToolLinkProps) {
+const ToolLink = memo(function ToolLink({ tool }: ToolLinkProps) {
   return (
     <Link
       href={`/${tool.slug}`}
@@ -76,7 +77,7 @@ function ToolLink({ tool }: ToolLinkProps) {
       </div>
     </Link>
   );
-}
+});
 
 export default function ToolHub() {
   // Group tools by category
@@ -89,9 +90,12 @@ export default function ToolHub() {
   })).filter((category) => category.tools.length > 0);
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-8" aria-labelledby="tool-hub-heading">
       <div className="text-center">
-        <h2 className="text-3xl font-black tracking-tight">
+        <h2
+          id="tool-hub-heading"
+          className="text-3xl font-black tracking-tight"
+        >
           Explore All Tools
         </h2>
         <p className="mt-2 text-zinc-500 dark:text-zinc-400">
@@ -110,6 +114,7 @@ export default function ToolHub() {
               <div className="flex items-center gap-3 mb-4">
                 <div
                   className={`p-2 rounded-xl bg-white dark:bg-black ${category.color} ${category.borderColor} border`}
+                  aria-hidden="true"
                 >
                   <Icon className="w-5 h-5" />
                 </div>

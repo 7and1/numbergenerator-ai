@@ -1,7 +1,10 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import type { GenerationResult, ToolConfig } from "@/lib/types";
 import WheelDisplay from "@/components/generator/WheelDisplay";
+import { VirtualizedList } from "@/components/ui/VirtualizedList";
+import { calculatePasswordStrength } from "@/lib/passwordStrength";
 
 const isColorValue = (mode: ToolConfig["mode"], value: string): boolean => {
   if (mode !== "color") return false;
@@ -70,7 +73,7 @@ const hasPasswordBatch = (meta: Record<string, unknown>): boolean => {
   return getNumber(pw, "batch") !== null;
 };
 
-export function Display({
+const Display = memo(function Display({
   config,
   result,
   placeholder,
@@ -79,6 +82,13 @@ export function Display({
   result: GenerationResult | null;
   placeholder?: string;
 }) {
+  // Calculate password strength for first password if applicable
+  const passwordStrength = useMemo(() => {
+    if (config.mode !== "password" || !result?.values?.length) return null;
+    const firstPassword = String(result.values[0]);
+    return calculatePasswordStrength(firstPassword);
+  }, [config.mode, result?.values]);
+
   if (config.ui.result_type === "wheel") {
     const items = (config.params.items ?? []).map((v) => String(v));
     const selectedIndex =
@@ -110,17 +120,30 @@ export function Display({
     (config.ui.result_type === "bubble" || config.ui.result_type === "card") &&
     (result?.values?.length ?? 0) <= 40;
   const meta = asRecord(result?.meta);
+  const resultId = `generated-result-${config.slug}`;
+  const resultLabel = result
+    ? `Generated ${result.values.length} ${result.values.length === 1 ? "value" : "values"}`
+    : "No result generated yet";
 
   return (
     <div className="w-full">
       {!result ? (
-        <div className="flex flex-wrap gap-3 justify-center items-center">
+        <div
+          className="flex flex-wrap gap-3 justify-center items-center"
+          role="status"
+          aria-live="polite"
+        >
           <div className="text-zinc-400 font-medium animate-pulse">
             {placeholder ?? "Press to Generate"}
           </div>
         </div>
       ) : result.values.length <= 1 && showAsCards ? (
-        <div className="flex flex-wrap gap-3 justify-center items-center">
+        <div
+          className="flex flex-wrap gap-3 justify-center items-center"
+          role="status"
+          aria-live="polite"
+          aria-label={resultLabel}
+        >
           {result.values.map((v, i) => (
             <span
               key={i}
@@ -139,7 +162,12 @@ export function Display({
           ))}
         </div>
       ) : showAsCards ? (
-        <div className="flex flex-wrap gap-3 justify-center items-center">
+        <div
+          className="flex flex-wrap gap-3 justify-center items-center"
+          role="status"
+          aria-live="polite"
+          aria-label={resultLabel}
+        >
           {result.values.map((v, i) => (
             <span
               key={i}
@@ -158,51 +186,54 @@ export function Display({
           ))}
         </div>
       ) : (
-        <div className="w-full max-h-[320px] overflow-auto rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/30 p-4">
-          <ol className="space-y-1.5">
-            {result.values.map((v, i) => {
-              const valueStr = String(v);
-              const isColor = isColorValue(config.mode, valueStr);
-              return (
-                <li
-                  key={i}
-                  className="flex gap-3 text-sm sm:text-base text-zinc-800 dark:text-zinc-200"
-                >
-                  <span className="w-10 shrink-0 text-right font-mono text-zinc-400">
-                    {i + 1}.
-                  </span>
-                  <span className="min-w-0 font-mono break-words">
-                    {String(v)}
-                  </span>
-                  {isColor && (
-                    <span
-                      className="w-12 h-8 shrink-0 rounded-md border border-zinc-300 dark:border-zinc-600"
-                      style={{ backgroundColor: valueStr }}
-                      title={valueStr}
-                    />
-                  )}
-                </li>
-              );
-            })}
-            {result.bonus_values?.map((v, i) => (
-              <li
-                key={`b-${i}`}
-                className="flex gap-3 text-sm sm:text-base text-red-700 dark:text-red-300"
-              >
-                <span className="w-10 shrink-0 text-right font-mono text-red-400">
-                  +{i + 1}.
+        <VirtualizedList
+          items={[
+            ...result.values.map((v, i) => ({
+              value: v,
+              index: i,
+              type: "normal" as const,
+            })),
+            ...(result.bonus_values?.map((v, i) => ({
+              value: v,
+              index: i,
+              type: "bonus" as const,
+            })) ?? []),
+          ]}
+          renderItem={(item, i) => {
+            const valueStr = String(item.value);
+            const isColor = isColorValue(config.mode, valueStr);
+            const isBonus = item.type === "bonus";
+            return (
+              <div className="flex gap-3 text-sm sm:text-base text-zinc-800 dark:text-zinc-200">
+                <span className="w-10 shrink-0 text-right font-mono text-zinc-400">
+                  {isBonus ? `+${item.index + 1}.` : `${i + 1}.`}
                 </span>
                 <span className="min-w-0 font-mono break-words">
-                  {String(v)}
+                  {valueStr}
                 </span>
-              </li>
-            ))}
-          </ol>
-        </div>
+                {isColor && (
+                  <span
+                    className="w-12 h-8 shrink-0 rounded-md border border-zinc-300 dark:border-zinc-600"
+                    style={{ backgroundColor: valueStr }}
+                    title={valueStr}
+                  />
+                )}
+              </div>
+            );
+          }}
+          getKey={(item) => `${item.type}-${item.index}`}
+          estimatedItemHeight={36}
+          maxHeight={320}
+          ariaLabel="Generated results"
+        />
       )}
 
       {meta && (
-        <div className="mt-4 grid sm:grid-cols-3 gap-3 text-xs">
+        <div
+          className="mt-4 grid sm:grid-cols-3 gap-3 text-xs"
+          role="region"
+          aria-label="Generation statistics"
+        >
           {config.mode === "dice" && getNumber(meta, "total") !== null && (
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
               <div className="text-zinc-400 font-bold uppercase">Total</div>
@@ -279,6 +310,31 @@ export function Display({
                 </div>
               </div>
             )}
+          {config.mode === "password" && passwordStrength && (
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+              <div className="text-zinc-400 font-bold uppercase">Strength</div>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="flex-1 h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${passwordStrength.score}%`,
+                      backgroundColor: passwordStrength.color,
+                    }}
+                  />
+                </div>
+                <span
+                  className="text-xs font-bold tabular-ns"
+                  style={{ color: passwordStrength.color }}
+                >
+                  {passwordStrength.label}
+                </span>
+              </div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 font-mono">
+                {passwordStrength.entropyBits} bits
+              </div>
+            </div>
+          )}
           {config.mode === "color" &&
             (() => {
               const format = meta.format as string | undefined;
@@ -307,4 +363,7 @@ export function Display({
       )}
     </div>
   );
-}
+});
+
+export { Display };
+Display.displayName = "Display";

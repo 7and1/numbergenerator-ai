@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Star, Trash2 } from "lucide-react";
-import { useSyncExternalStore } from "react";
+import { memo, useSyncExternalStore } from "react";
 
 import type { FavoriteItem, RecentItem } from "@/lib/userData";
 import {
@@ -14,13 +14,13 @@ import {
   toggleFavorite,
 } from "@/lib/userData";
 
-const Card = ({
+const Card = memo(function Card({
   item,
   right,
 }: {
   item: { href: string; title: string; description?: string };
   right?: React.ReactNode;
-}) => {
+}) {
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/30 p-5 shadow-sm flex items-start justify-between gap-3">
       <div className="min-w-0">
@@ -39,7 +39,7 @@ const Card = ({
       {right}
     </div>
   );
-};
+});
 
 export default function HomeCollections() {
   const { favorites, recents } = useSyncExternalStore(
@@ -51,65 +51,70 @@ export default function HomeCollections() {
   if (favorites.length === 0 && recents.length === 0) return null;
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6" aria-label="Your collections">
       {favorites.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-black tracking-wide uppercase text-zinc-400">
+            <h2 className="text-sm font-black tracking-wide uppercase text-zinc-400">
               Favorites
-            </div>
+            </h2>
             <button
               type="button"
               onClick={() => {
                 clearFavorites();
               }}
               className="text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white inline-flex items-center gap-2"
+              aria-label="Clear all favorites"
             >
-              <Trash2 size={14} /> Clear
+              <Trash2 size={14} aria-hidden="true" /> <span>Clear</span>
             </button>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" role="list">
             {favorites.map((f) => (
-              <Card
-                key={f.key}
-                item={f}
-                right={
-                  <button
-                    type="button"
-                    aria-label="Remove favorite"
-                    onClick={() => toggleFavorite(f)}
-                    className="shrink-0 h-10 w-10 inline-flex items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
-                  >
-                    <Star size={18} fill="currentColor" />
-                  </button>
-                }
-              />
+              <li key={f.key}>
+                <Card
+                  item={f}
+                  right={
+                    <button
+                      type="button"
+                      aria-label={`Remove ${f.title} from favorites`}
+                      onClick={() => toggleFavorite(f)}
+                      className="shrink-0 h-10 w-10 inline-flex items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    >
+                      <Star size={18} fill="currentColor" aria-hidden="true" />
+                    </button>
+                  }
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
 
       {recents.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-black tracking-wide uppercase text-zinc-400">
+            <h2 className="text-sm font-black tracking-wide uppercase text-zinc-400">
               Recent
-            </div>
+            </h2>
             <button
               type="button"
               onClick={() => {
                 clearRecents();
               }}
               className="text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white inline-flex items-center gap-2"
+              aria-label="Clear all recent items"
             >
-              <Trash2 size={14} /> Clear
+              <Trash2 size={14} aria-hidden="true" /> <span>Clear</span>
             </button>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" role="list">
             {recents.map((r) => (
-              <Card key={r.key} item={r} />
+              <li key={r.key}>
+                <Card item={r} />
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
     </section>

@@ -1,0 +1,16 @@
+[Unit]
+Description=NumberGenerator PocketBase
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/number-pb
+ExecStart=/opt/number-pb/pocketbase serve --http=0.0.0.0:8090
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
+

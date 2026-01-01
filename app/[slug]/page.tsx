@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import ToolClientShell from "@/components/generator/ToolClientShell";
 import { CONFIG_MAP } from "@/lib/configMap";
 import ToolSEOContent from "@/components/tool/ToolSEOContent";
+import { Breadcrumbs } from "@/components/ui";
+import { getToolBreadcrumbs } from "@/lib/breadcrumbs";
 
 export const dynamicParams = false;
 
@@ -135,9 +137,25 @@ export default async function ToolPage({
   // Combine all schemas
   const jsonLd = [webApplicationSchema, faqSchema, howToSchema].filter(Boolean);
 
+  // Generate breadcrumb items
+  const breadcrumbs = getToolBreadcrumbs(
+    config.slug,
+    config.title,
+    config.category,
+  );
+
   return (
-    <main className="min-h-screen bg-white dark:bg-black">
+    <main
+      id="tool-page-main"
+      className="min-h-screen bg-white dark:bg-black"
+      aria-labelledby="tool-title"
+    >
       <div className="max-w-3xl mx-auto px-4 py-12 md:py-16">
+        {/* Breadcrumb Navigation */}
+        <div className="mb-6">
+          <Breadcrumbs items={breadcrumbs} />
+        </div>
+
         <ToolClientShell key={config.slug} config={config} />
 
         {/* SEO Content Section */}

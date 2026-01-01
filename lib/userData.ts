@@ -23,10 +23,10 @@ const isBrowser = () =>
 
 type UserDataSnapshot = { favorites: FavoriteItem[]; recents: RecentItem[] };
 
-const SERVER_SNAPSHOT: UserDataSnapshot = Object.freeze({
-  favorites: Object.freeze([]) as unknown as FavoriteItem[],
-  recents: Object.freeze([]) as unknown as RecentItem[],
-});
+const SERVER_SNAPSHOT: UserDataSnapshot = {
+  favorites: [],
+  recents: [],
+};
 
 let cachedSnapshot: UserDataSnapshot | null = null;
 

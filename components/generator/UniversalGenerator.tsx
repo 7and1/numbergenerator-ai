@@ -37,6 +37,7 @@ import {
 import { trackToolUsage } from "@/lib/usageTracker";
 import { EmbedCode } from "@/components/tool/EmbedCode";
 import { ShortcutHint } from "@/components/ui/KeyboardShortcuts";
+import { TicketLogViewer } from "@/components/generator/TicketLogViewer";
 
 // Utility function for conditional className
 const cn = (...classes: (string | false | undefined | null)[]) => {
@@ -806,6 +807,18 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
         </div>
       )}
 
+      {/* Ticket Log Viewer - shown below export buttons for ticket mode */}
+      {config.mode === "ticket" && (
+        <TicketLogViewer
+          log={ticketLog.map((entry) => ({
+            timestamp: entry.timestamp,
+            values: entry.values,
+          }))}
+          onClear={clearTicketLog}
+          onExport={exportTicketLog}
+        />
+      )}
+
       {history.length > 0 && (
         <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
           <h2 className="flex items-center gap-2 text-xs text-zinc-400 font-bold uppercase tracking-wider mb-3">
@@ -830,16 +843,20 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
 
       {/* Embed & Share Section */}
       <details className="group">
-        <summary className="flex items-center justify-between cursor-pointer list-none px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+        <summary className="flex items-center justify-between cursor-pointer list-none px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400/50 focus-visible:ring-offset-2">
           <span className="flex items-center gap-2 text-sm font-bold text-zinc-700 dark:text-zinc-300">
             <Code size={16} aria-hidden="true" />
             Embed & Share
           </span>
-          <span className="text-xs text-zinc-500 group-open:rotate-180 transition-transform">
+          <span
+            className="text-xs text-zinc-500 group-open:rotate-180 transition-transform"
+            aria-hidden="true"
+          >
             ▼
           </span>
+          <span className="sr-only">Toggle embed code section</span>
         </summary>
-        <div className="mt-4">
+        <div className="mt-4" role="region" aria-label="Embed code options">
           <EmbedCode
             toolSlug={config.slug}
             toolTitle={config.title}

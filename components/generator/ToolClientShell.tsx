@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import type { ToolConfig } from "@/lib/types";
 import UniversalGenerator from "@/components/generator/UniversalGenerator";
+import { GeneratorErrorBoundary } from "@/components/error";
 import { Toast } from "@/components/ui/Toast";
 import {
   getUserDataServerSnapshot,
@@ -335,7 +336,19 @@ export default function ToolClientShell({ config }: { config: ToolConfig }) {
         </div>
       </header>
 
-      <UniversalGenerator key={effectiveConfig.slug} config={effectiveConfig} />
+      <GeneratorErrorBoundary
+        key={effectiveConfig.slug}
+        toolName={effectiveConfig.title}
+        onReset={() => {
+          // Force a re-render by changing the key
+          window.location.reload();
+        }}
+      >
+        <UniversalGenerator
+          key={effectiveConfig.slug}
+          config={effectiveConfig}
+        />
+      </GeneratorErrorBoundary>
 
       <article className="mt-20 prose prose-zinc dark:prose-invert mx-auto">
         <hr />

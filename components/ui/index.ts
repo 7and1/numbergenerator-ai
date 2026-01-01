@@ -39,3 +39,15 @@ export type {
 
 export { WarningAlert } from "./WarningAlert";
 export type { WarningAlertProps, WarningVariant } from "./WarningAlert";
+
+export { PasswordStrengthMeter } from "./PasswordStrengthMeter";
+export type { PasswordStrengthMeterProps } from "./PasswordStrengthMeter";
+
+export { Breadcrumbs, CompactBreadcrumbs } from "./Breadcrumbs";
+export type { BreadcrumbsProps, CompactBreadcrumbsProps } from "./Breadcrumbs";
+
+export { VirtualizedList, useVirtualizedListRef } from "./VirtualizedList";
+export type {
+  VirtualizedListProps,
+  VirtualizedListRef,
+} from "./VirtualizedList";

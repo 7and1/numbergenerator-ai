@@ -1,22 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "@/styles/globals.css";
-import {
-  PWAInstallPrompt,
-  OfflineIndicator,
-} from "@/components/ui/PWAInstallPrompt";
-import { KeyboardShortcutsModal } from "@/components/ui/KeyboardShortcuts";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { Header, MobileBottomNav, Footer } from "@/components/layout";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://numbergenerator.ai"),
@@ -95,41 +79,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="theme-color" content="#000000" />
         <meta name="format-detection" content="telephone=no" />
-        {/* Umami Analytics */}
-        <Script
-          src="https://umami.expertbeacon.com/script.js"
-          data-website-id="c9de8b9d-5ff1-4e3f-8f12-3b4f5e6a7c8d"
-          strategy="afterInteractive"
-        />
-        {/* Service Worker Registration */}
-        <Script id="register-sw" strategy="afterInteractive">
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then((reg) => {
-                  console.log('SW registered:', reg.scope);
-                }).catch((err) => {
-                  console.log('SW registration failed:', err);
-                });
-              });
-            }
-          `}
-        </Script>
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-full`}
-      >
-        <OfflineIndicator />
-        {children}
-        <PWAInstallPrompt />
-        <KeyboardShortcutsModal />
+      <body className="antialiased min-h-full font-sans flex flex-col">
+        <a href="#main-content" className="skip-to-content">
+          Skip to main content
+        </a>
+        <Header />
+        <div id="main-content" className="lg:pb-0 pb-16 flex-1" tabIndex={-1}>
+          {children}
+        </div>
+        <MobileBottomNav />
+        <Footer />
       </body>
     </html>
   );

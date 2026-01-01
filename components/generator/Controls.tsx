@@ -3,6 +3,8 @@
 import { memo, useCallback, useMemo } from "react";
 import type { GeneratorParams, ToolConfig } from "@/lib/types";
 import { parseItemsText } from "@/lib/listText";
+import { calculatePasswordStrength } from "@/lib/passwordStrength";
+import { PasswordStrengthMeter } from "@/components/ui/PasswordStrengthMeter";
 
 // Utility function for conditional className (replaces array join for better performance)
 const cn = (...classes: (string | false | undefined | null)[]) => {
@@ -29,37 +31,83 @@ const removeChars = (source: string, remove: string) => {
     .join("");
 };
 
-const estimateEntropyBits = (length: number, poolSize: number) => {
-  if (!(length > 0) || !(poolSize > 1)) return 0;
-  return length * Math.log2(poolSize);
-};
+/**
+ * Generate a sample password based on current params for strength calculation
+ */
+const generateSamplePassword = (
+  length: number,
+  pool: string,
+  includeLower: boolean | undefined,
+  includeUpper: boolean | undefined,
+  includeDigits: boolean | undefined,
+  includeSymbols: boolean | undefined,
+  ensureEach: boolean | undefined,
+  excludeAmbiguous: boolean | undefined,
+  excludeChars: string | undefined,
+  charset: GeneratorParams["charset"],
+): string => {
+  const len = Math.max(1, Math.min(64, Math.floor(length)));
+  const groups: string[] = [];
 
-const strengthLabel = (bits: number) => {
-  if (bits >= 90)
-    return { label: "Very Strong", pct: 100, color: "bg-emerald-500" };
-  if (bits >= 70)
-    return {
-      label: "Strong",
-      pct: Math.min(100, Math.round((bits / 90) * 100)),
-      color: "bg-green-500",
-    };
-  if (bits >= 50)
-    return {
-      label: "Good",
-      pct: Math.min(100, Math.round((bits / 90) * 100)),
-      color: "bg-yellow-500",
-    };
-  if (bits >= 30)
-    return {
-      label: "Weak",
-      pct: Math.min(100, Math.round((bits / 90) * 100)),
-      color: "bg-orange-500",
-    };
-  return {
-    label: "Very Weak",
-    pct: Math.min(100, Math.round((bits / 90) * 100)),
-    color: "bg-red-500",
-  };
+  if (typeof includeLower === "boolean") {
+    if (includeLower) groups.push("abcdefghijkmnpqrstuvwxyz");
+  } else {
+    groups.push("abcdefghijkmnpqrstuvwxyz");
+  }
+  if (typeof includeUpper === "boolean") {
+    if (includeUpper) groups.push("ABCDEFGHJKLMNPQRSTUVWXYZ");
+  } else {
+    groups.push("ABCDEFGHJKLMNPQRSTUVWXYZ");
+  }
+  if (typeof includeDigits === "boolean") {
+    if (includeDigits) groups.push("23456789");
+  } else {
+    groups.push("23456789");
+  }
+  if (typeof includeSymbols === "boolean") {
+    if (includeSymbols) groups.push("!@#$%^&*()_+-=~[]{};:,.?");
+  } else {
+    groups.push("!@#$%^&*()_+-=~[]{};:,.?");
+  }
+
+  // Build pool based on character sets
+  let effectivePool = pool;
+  if (excludeAmbiguous) {
+    effectivePool = removeChars(effectivePool, AMBIGUOUS_CHARS);
+  }
+  if (typeof excludeChars === "string" && excludeChars.length) {
+    effectivePool = removeChars(effectivePool, excludeChars);
+  }
+
+  if (!effectivePool.length) {
+    effectivePool =
+      "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz!@#$%^&*()_+-=";
+  }
+
+  // For ensure_each, pick at least one from each group
+  const pieces: string[] = [];
+  const ensure = Boolean(ensureEach);
+  if (ensure && groups.length > 0) {
+    for (const g of groups) {
+      let gg = g;
+      if (excludeAmbiguous) gg = removeChars(gg, AMBIGUOUS_CHARS);
+      if (typeof excludeChars === "string" && excludeChars.length)
+        gg = removeChars(gg, excludeChars);
+      if (!gg.length) continue;
+      const idx = Math.floor(Math.random() * gg.length);
+      pieces.push(gg[idx]!);
+    }
+  }
+
+  // Fill remaining with random from pool
+  while (pieces.length < len) {
+    const idx = Math.floor(Math.random() * effectivePool.length);
+    pieces.push(effectivePool[idx]!);
+  }
+
+  // Shuffle and return
+  const shuffled = pieces.sort(() => Math.random() - 0.5);
+  return shuffled.join("").slice(0, len);
 };
 
 interface NumberFieldProps {
@@ -321,9 +369,64 @@ const PasswordControls = memo<{
       showPro,
     );
 
-    const poolSize = uniqCharsCount(pool);
-    const bits = estimateEntropyBits(Math.max(0, Math.floor(len)), poolSize);
-    const strength = strengthLabel(bits);
+    // Generate a sample password for strength calculation (representative)
+    // Using a deterministic approach - take the first character from each set
+    const samplePassword = useMemo(() => {
+      const sampleLen = Math.max(1, Math.min(64, Math.floor(len)));
+
+      if (!showPro) {
+        // For non-pro mode, use charset-based representative
+        let effectivePool = pool;
+        if (charset === "numeric") {
+          return "8".repeat(sampleLen);
+        }
+        if (charset === "hex") {
+          return "A8".repeat(Math.ceil(sampleLen / 2)).slice(0, sampleLen);
+        }
+        if (charset === "alphanumeric") {
+          return "aB8".repeat(Math.ceil(sampleLen / 3)).slice(0, sampleLen);
+        }
+        // For strong/default, use representative mix
+        return "aB8@".repeat(Math.ceil(sampleLen / 4)).slice(0, sampleLen);
+      }
+
+      // For pro mode, create representative sample based on selected options
+      const useLower = params.include_lower ?? true;
+      const useUpper = params.include_upper ?? true;
+      const useDigits = params.include_digits ?? true;
+      const useSymbols = params.include_symbols ?? true;
+
+      let sample = "";
+      const pattern: string[] = [];
+
+      if (useLower) pattern.push("a");
+      if (useUpper) pattern.push("B");
+      if (useDigits) pattern.push("8");
+      if (useSymbols) pattern.push("@");
+
+      if (pattern.length === 0) pattern.push("a");
+
+      // Build sample from pattern
+      for (let i = 0; i < sampleLen; i++) {
+        sample += pattern[i % pattern.length];
+      }
+
+      return sample;
+    }, [
+      len,
+      pool,
+      showPro,
+      charset,
+      params.include_lower,
+      params.include_upper,
+      params.include_digits,
+      params.include_symbols,
+    ]);
+
+    const passwordStrength = useMemo(
+      () => calculatePasswordStrength(samplePassword),
+      [samplePassword],
+    );
 
     const handleLengthChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -427,23 +530,15 @@ const PasswordControls = memo<{
           />
         </div>
 
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-black/20 p-3">
-          <div className="flex items-center justify-between gap-3 text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400">
-            <span>Strength</span>
-            <span className="font-mono normal-case text-zinc-600 dark:text-zinc-300">
-              {strength.label} · {Math.round(bits)} bits
-            </span>
-          </div>
-          <div className="mt-2 h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
-            <div
-              className={cn("h-2", strength.color)}
-              style={{ width: `${strength.pct}%` }}
-            />
-          </div>
-          <div className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-            Pool size: {poolSize} · Length: {Math.floor(len)}
-          </div>
-        </div>
+        {/* Password Strength Meter */}
+        <PasswordStrengthMeter
+          strength={passwordStrength}
+          showFeedback={false}
+          showRequirements={false}
+          showCrackTime={true}
+          showNistBadge={false}
+          compact={true}
+        />
 
         <div className="grid grid-cols-2 gap-4">
           <NumberField
@@ -637,10 +732,14 @@ export function Controls({
             onChange={(v) => onChange({ precision: v })}
           />
           <div className="bg-zinc-50 dark:bg-zinc-900/40 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800">
-            <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">
+            <label
+              htmlFor="sort-select"
+              className="block text-xs font-bold text-zinc-400 uppercase mb-2"
+            >
               Sort
             </label>
             <select
+              id="sort-select"
               value={params.sort ?? ""}
               onChange={(e) =>
                 onChange({
@@ -650,19 +749,19 @@ export function Controls({
               className="w-full bg-transparent text-base font-semibold text-zinc-900 dark:text-white outline-none"
             >
               <option value="">None</option>
-              <option value="asc">Asc</option>
-              <option value="desc">Desc</option>
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
             </select>
           </div>
         </div>
-        <label className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-300 select-none">
+        <label className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-300 select-none cursor-pointer">
           <input
             type="checkbox"
             checked={Boolean(params.unique)}
             onChange={(e) => onChange({ unique: e.target.checked })}
             className="h-4 w-4 accent-black"
           />
-          Unique (no repeats)
+          <span>Unique (no repeats)</span>
         </label>
       </div>
     );

@@ -15,7 +15,14 @@ type EventType =
   | "tool_export"
   | "tool_favorite"
   | "tool_share"
-  | "combo_generate";
+  | "combo_generate"
+  | "error_global"
+  | "error_global_reset"
+  | "error_global_home"
+  | "error_generator"
+  | "error_generator_reset"
+  | "error_copy_id"
+  | "error_report";
 
 interface EventData {
   [key: string]: string | number | boolean | undefined;

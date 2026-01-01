@@ -396,11 +396,16 @@ export function ComboGenerator() {
       </div>
 
       {/* Generate All Button */}
-      <div className="flex flex-wrap gap-3 justify-center">
+      <div
+        className="flex flex-wrap gap-3 justify-center"
+        role="group"
+        aria-label="Generator controls"
+      >
         <button
           type="button"
           onClick={generateAll}
           className="h-14 px-8 bg-black dark:bg-white text-white dark:text-black rounded-xl text-lg font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2"
+          aria-label={`Generate all ${slots.length} tools`}
         >
           <RefreshCw
             size={20}
@@ -409,7 +414,7 @@ export function ComboGenerator() {
             }
             aria-hidden="true"
           />
-          Generate All ({slots.length})
+          <span aria-hidden="true">Generate All ({slots.length})</span>
         </button>
 
         {slots.some((s) => s.result) && (
@@ -418,18 +423,20 @@ export function ComboGenerator() {
               type="button"
               onClick={copyAllResults}
               className="h-14 px-6 rounded-xl border border-zinc-200 dark:border-zinc-800 font-bold hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors flex items-center gap-2"
+              aria-label="Copy all results to clipboard"
             >
               <Copy size={18} aria-hidden="true" />
-              Copy All
+              <span aria-hidden="true">Copy All</span>
             </button>
 
             <button
               type="button"
               onClick={() => exportResults("json")}
               className="h-14 px-6 rounded-xl border border-zinc-200 dark:border-zinc-800 font-bold hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors flex items-center gap-2"
+              aria-label="Export results as JSON"
             >
               <Download size={18} aria-hidden="true" />
-              Export
+              <span aria-hidden="true">Export</span>
             </button>
           </>
         )}
@@ -438,9 +445,10 @@ export function ComboGenerator() {
           type="button"
           onClick={addSlot}
           className="h-14 px-6 rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 font-bold text-zinc-500 hover:border-zinc-400 dark:hover:border-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors flex items-center gap-2"
+          aria-label="Add new tool generator"
         >
           <Plus size={18} aria-hidden="true" />
-          Add Tool
+          <span aria-hidden="true">Add Tool</span>
         </button>
       </div>
 
@@ -486,9 +494,9 @@ export function ComboGenerator() {
                     type="button"
                     onClick={() => removeSlot(slot.id)}
                     className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                    aria-label="Remove this tool"
+                    aria-label={`Remove tool ${index + 1}: ${config?.title || slot.toolSlug}`}
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={18} aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -501,6 +509,9 @@ export function ComboGenerator() {
                     ? "bg-zinc-50 dark:bg-zinc-950/50 border-zinc-200 dark:border-zinc-800"
                     : "bg-zinc-100 dark:bg-zinc-900/30 border-dashed border-zinc-300 dark:border-zinc-700",
                 )}
+                role="status"
+                aria-live="polite"
+                aria-label={`Result for tool ${index + 1}`}
               >
                 {slot.result ? (
                   <div className="text-center">
@@ -531,13 +542,14 @@ export function ComboGenerator() {
                 type="button"
                 onClick={() => generateSlot(slot.id)}
                 className="w-full h-12 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                aria-label={`Generate result for ${config?.title || slot.toolSlug}`}
               >
                 <RefreshCw
                   size={16}
                   className={isAnimating ? "animate-spin" : ""}
                   aria-hidden="true"
                 />
-                Generate
+                <span aria-hidden="true">Generate</span>
               </button>
             </div>
           );

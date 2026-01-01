@@ -95,8 +95,19 @@ export default function HomeHeroRange({
     await handleCopy();
   };
 
+  const minInputId = "home-hero-min";
+  const maxInputId = "home-hero-max";
+  const resultId = "home-hero-result";
+  const statusId = "home-hero-status";
+
   return (
-    <section className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/30 shadow-sm overflow-hidden">
+    <section
+      className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/30 shadow-sm overflow-hidden"
+      aria-labelledby="home-hero-heading"
+    >
+      <div className="sr-only">
+        <h2 id="home-hero-heading">Quick Random Number Generator</h2>
+      </div>
       <div className="relative p-6 sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -111,18 +122,18 @@ export default function HomeHeroRange({
             <button
               type="button"
               onClick={handleShare}
-              aria-label="Share"
+              aria-label="Share this generator"
               className="h-10 w-10 inline-flex items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
             >
-              <Share2 size={18} />
+              <Share2 size={18} aria-hidden="true" />
             </button>
             <button
               type="button"
               onClick={handleCopy}
-              aria-label="Copy"
+              aria-label="Copy result and link"
               className="h-10 w-10 inline-flex items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
             >
-              <Copy size={18} />
+              <Copy size={18} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -135,40 +146,66 @@ export default function HomeHeroRange({
               animating ? "scale-[0.995]" : "scale-100",
               "transition-transform duration-150",
             ].join(" ")}
+            role="status"
+            aria-live="polite"
           >
-            <div className="text-6xl sm:text-7xl font-black tracking-tight text-zinc-900 dark:text-white tabular-nums">
+            <span
+              id={resultId}
+              className="text-6xl sm:text-7xl font-black tracking-tight text-zinc-900 dark:text-white tabular-nums"
+            >
               {result ?? "—"}
-            </div>
+            </span>
           </div>
 
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black p-4 space-y-4">
-            <label className="block">
-              <div className="text-xs font-bold text-zinc-400 uppercase mb-1">
+            <label htmlFor={minInputId} className="block">
+              <span
+                id={`${minInputId}-label`}
+                className="text-xs font-bold text-zinc-400 uppercase mb-1 block"
+              >
                 Min
-              </div>
+              </span>
               <input
+                id={minInputId}
                 type="number"
                 value={min}
                 onChange={(e) => setMin(Number(e.target.value))}
+                aria-describedby={`${minInputId}-description`}
                 className="w-full bg-transparent text-2xl font-black text-zinc-900 dark:text-white outline-none font-mono"
               />
+              <span id={`${minInputId}-description`} className="sr-only">
+                Minimum value for the random number range
+              </span>
             </label>
-            <label className="block">
-              <div className="text-xs font-bold text-zinc-400 uppercase mb-1">
+            <label htmlFor={maxInputId} className="block">
+              <span
+                id={`${maxInputId}-label`}
+                className="text-xs font-bold text-zinc-400 uppercase mb-1 block"
+              >
                 Max
-              </div>
+              </span>
               <input
+                id={maxInputId}
                 type="number"
                 value={max}
                 onChange={(e) => setMax(Number(e.target.value))}
+                aria-describedby={`${maxInputId}-description`}
                 className="w-full bg-transparent text-2xl font-black text-zinc-900 dark:text-white outline-none font-mono"
               />
+              <span id={`${maxInputId}-description`} className="sr-only">
+                Maximum value for the random number range
+              </span>
             </label>
           </div>
         </div>
 
         {toast && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-xs font-bold bg-black text-white dark:bg-white dark:text-black shadow">
+          <div
+            id={statusId}
+            className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-xs font-bold bg-black text-white dark:bg-white dark:text-black shadow"
+            role="status"
+            aria-live="polite"
+          >
             {toast}
           </div>
         )}
@@ -177,10 +214,17 @@ export default function HomeHeroRange({
       <button
         type="button"
         onClick={handleGenerate}
+        aria-describedby={`${resultId} ${statusId}`}
         className="w-full h-14 bg-black text-white dark:bg-white dark:text-black font-black tracking-wide flex items-center justify-center gap-2"
       >
-        {animating && <RefreshCw className="animate-spin" size={20} />}
-        GENERATE
+        <span className="sr-only">
+          Generate random number between {displayRange.min} and{" "}
+          {displayRange.max}
+        </span>
+        {animating && (
+          <RefreshCw className="animate-spin" size={18} aria-hidden="true" />
+        )}
+        <span aria-hidden="true">GENERATE</span>
       </button>
     </section>
   );

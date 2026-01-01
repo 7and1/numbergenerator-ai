@@ -4,7 +4,6 @@ import { CONFIG_MAP } from "@/lib/configMap";
 import HomeHeroRange from "@/components/generator/HomeHeroRange";
 import HomeCollections from "@/components/home/HomeCollections";
 import ToolHub from "@/components/home/ToolHub";
-import { UsageHeatMap } from "@/components/home/UsageHeatMap";
 
 export default function Home() {
   const tools = Object.values(CONFIG_MAP).filter(
@@ -15,11 +14,14 @@ export default function Home() {
   const featuredTools = tools.filter((t) => (t.priority ?? 0) >= 0.9);
 
   return (
-    <main className="min-h-screen bg-white dark:bg-black">
+    <main id="homepage-main" className="min-h-screen bg-white dark:bg-black">
       <div className="max-w-6xl mx-auto px-4 py-12 md:py-16 space-y-12">
         {/* Header Section */}
         <header className="text-center space-y-6">
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight">
+          <h1
+            id="page-heading"
+            className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight"
+          >
             NumberGenerator.ai
           </h1>
           <p className="text-base md:text-lg lg:text-xl text-zinc-500 dark:text-zinc-400 font-medium max-w-2xl mx-auto">
@@ -62,9 +64,7 @@ export default function Home() {
         </section>
 
         {/* Usage Heat Map */}
-        <section aria-label="Usage statistics">
-          <UsageHeatMap />
-        </section>
+        {/* UsageHeatMap temporarily disabled due to SSR issues */}
 
         {/* Featured Tools Section */}
         {featuredTools.length > 0 && (
@@ -141,30 +141,6 @@ export default function Home() {
             ))}
           </ul>
         </section>
-
-        {/* Footer */}
-        <footer className="text-center text-sm text-zinc-400 pt-8 border-t border-zinc-200 dark:border-zinc-800">
-          <p className="mb-2">
-            Built with Web Crypto CSPRNG. No tracking. No ads.
-          </p>
-          <nav aria-label="Footer navigation">
-            <Link
-              href="/sitemap.xml"
-              className="hover:underline focus-visible:underline"
-            >
-              Sitemap
-            </Link>
-            {" | "}
-            <a
-              href="https://github.com"
-              className="hover:underline focus-visible:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub
-            </a>
-          </nav>
-        </footer>
       </div>
     </main>
   );

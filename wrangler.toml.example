@@ -1,0 +1,21 @@
+# Cloudflare Pages Configuration Template
+# Copy this file to wrangler.toml and set your account_id via environment variable
+# DO NOT commit wrangler.toml with your account_id!
+
+# Project name (will be used as: https://your-project.pages.dev)
+name = "numbergenerator-ai"
+compatibility_date = "2024-01-01"
+
+# Production branch
+pages_build_output_dir = "out"
+
+# Environment-specific settings
+[env.production]
+pages_build_output_dir = "out"
+
+[env.preview]
+pages_build_output_dir = "out"
+
+# NOTE: account_id is read from CLOUDFLARE_ACCOUNT_ID environment variable
+# Set it in your shell or CI/CD:
+#   export CLOUDFLARE_ACCOUNT_ID=your_account_id_here

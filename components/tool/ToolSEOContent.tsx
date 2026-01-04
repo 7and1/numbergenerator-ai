@@ -1,13 +1,15 @@
 import type { ToolConfig } from "@/lib/types";
 import Link from "next/link";
 import { ChevronRight, CheckCircle2, HelpCircle, BookOpen } from "lucide-react";
+import { getRelatedTools } from "@/lib/relatedTools";
 
 interface ToolSEOContentProps {
   config: ToolConfig;
 }
 
 export default function ToolSEOContent({ config }: ToolSEOContentProps) {
-  const { title, description, faq, how_to, features } = config;
+  const { title, description, faq, how_to, features, slug } = config;
+  const relatedTools = getRelatedTools(slug, 4);
 
   return (
     <article className="mt-16 space-y-12 border-t border-zinc-200 dark:border-zinc-800 pt-12">
@@ -91,33 +93,23 @@ export default function ToolSEOContent({ config }: ToolSEOContentProps) {
       )}
 
       {/* Related Tools Section */}
-      <section>
-        <h2 className="text-2xl font-bold tracking-tight mb-6">
-          Related Tools
-        </h2>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <RelatedToolLink
-            href="/1-100"
-            title="Random Number 1-100"
-            description="Generate a random number between 1 and 100"
-          />
-          <RelatedToolLink
-            href="/password-strong"
-            title="Strong Password Generator"
-            description="Create secure random passwords"
-          />
-          <RelatedToolLink
-            href="/pin-4"
-            title="4-Digit PIN Generator"
-            description="Generate secure 4-digit PIN codes"
-          />
-          <RelatedToolLink
-            href="/dice-roller"
-            title="Dice Roller"
-            description="Roll virtual dice for games"
-          />
-        </div>
-      </section>
+      {relatedTools.length > 0 && (
+        <section>
+          <h2 className="text-2xl font-bold tracking-tight mb-6">
+            Related Tools
+          </h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {relatedTools.map((tool) => (
+              <RelatedToolLink
+                key={tool.slug}
+                href={`/${tool.slug}`}
+                title={tool.title}
+                description={tool.description}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Security Notice */}
       <section className="rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 p-6">

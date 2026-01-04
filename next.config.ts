@@ -2,34 +2,18 @@ import type { NextConfig } from "next";
 import TerserPlugin from "terser-webpack-plugin";
 
 /**
- * Security Headers Configuration for Cloudflare Pages
+ * Next.js static export for Cloudflare Pages.
  *
- * Content-Security-Policy (CSP):
- * - Restricts sources of content to prevent XSS attacks
- * - Allows scripts from self and inline (for Next.js) + Umami analytics
- * - Allows images from self, data: URIs, and HTTPS
- * - Allows connections to Umami analytics endpoint
- * - Blocks plugins, frames, and restricts form actions
- *
- * Additional Security Headers:
- * - X-Content-Type-Options: Prevents MIME sniffing
- * - X-Frame-Options: Prevents clickjacking
- * - X-XSS-Protection: Legacy XSS filter (for older browsers)
- * - Referrer-Policy: Controls referrer information leakage
- * - Permissions-Policy: Disables sensitive device features
- *
- * Cache Headers:
- * - Static assets (images, fonts, JS, CSS): 1 year immutable
- * - HTML: no-cache to ensure fresh content
- *
- * Performance Optimizations:
- * - Code splitting by route and vendor
- * - Tree shaking for unused code
- * - Module concatenation for smaller bundles
- * - SWC minification
- * - Production-only optimizations
+ * Note: `output: "export"` does not apply Next's `headers()` config.
+ * Security & cache headers are configured via `public/_headers` (copied to `out/_headers`).
  */
 const nextConfig: NextConfig = {
+  // Memory optimization for development
+  onDemandEntries: {
+    maxInactiveAge: 15 * 1000,
+    pagesBufferLength: 3,
+  },
+
   output: "export",
   trailingSlash: true,
   images: { unoptimized: true },
@@ -142,159 +126,6 @@ const nextConfig: NextConfig = {
     }
 
     return config;
-  },
-
-  // Security headers for Cloudflare Pages
-  headers: async () => {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          // Content Security Policy
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://umami.expertbeacon.com",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https:",
-              "connect-src 'self' https://umami.expertbeacon.com",
-              "font-src 'self'",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "frame-ancestors 'none'",
-            ].join("; "),
-          },
-          // X-Content-Type-Options: Prevent MIME sniffing
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          // X-Frame-Options: Prevent clickjacking
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-          // X-XSS-Protection: Legacy XSS filter
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-          // Referrer-Policy: Control referrer leakage
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-          // Permissions-Policy: Disable sensitive features
-          {
-            key: "Permissions-Policy",
-            value: "geolocation=(), microphone=(), camera=()",
-          },
-        ],
-      },
-      // Cache headers for static assets (1 year immutable)
-      {
-        source: "/_next/static/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/images/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/fonts/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/favicon.ico",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/(.*).png",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/(.*).jpg",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/(.*).jpeg",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/(.*).svg",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/(.*).webp",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/(.*).woff2",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      // HTML pages: no-cache to ensure fresh content
-      {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=0, must-revalidate",
-          },
-        ],
-      },
-    ];
   },
 };
 

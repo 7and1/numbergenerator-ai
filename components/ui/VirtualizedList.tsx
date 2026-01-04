@@ -65,12 +65,15 @@ export function VirtualizedList<T>(
 
   const containerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLOListElement>(null);
-  const itemHeightsRef = useRef<Map<number, number>>(new Map());
-  const scrollTopRef = useRef(initialScrollTop);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollRafRef = useRef<number | null>(null);
 
   const [containerHeight, setContainerHeight] = useState<number>(0);
   const [isScrolling, setIsScrolling] = useState(false);
+  const [scrollTop, setScrollTop] = useState<number>(initialScrollTop);
+  const [itemHeights, setItemHeights] = useState<Map<number, number>>(
+    () => new Map(),
+  );
 
   const shouldVirtualize = useMemo(() => {
     if (disableVirtualization) return false;
@@ -81,23 +84,22 @@ export function VirtualizedList<T>(
     if (!shouldVirtualize) return "auto";
     let height = 0;
     for (let i = 0; i < items.length; i++) {
-      const h = itemHeightsRef.current.get(i) ?? estimatedItemHeight;
+      const h = itemHeights.get(i) ?? estimatedItemHeight;
       height += h;
     }
     return height;
-  }, [shouldVirtualize, items.length, estimatedItemHeight, items]);
+  }, [shouldVirtualize, items.length, estimatedItemHeight, itemHeights]);
 
   const visibleRange = useMemo(() => {
     if (!shouldVirtualize) {
       return { start: 0, end: items.length };
     }
 
-    const scrollTop = scrollTopRef.current;
     let start = 0;
     let accumulatedHeight = 0;
 
     for (let i = 0; i < items.length; i++) {
-      const itemHeight = itemHeightsRef.current.get(i) ?? estimatedItemHeight;
+      const itemHeight = itemHeights.get(i) ?? estimatedItemHeight;
       const threshold = scrollTop - overscan * estimatedItemHeight;
       if (accumulatedHeight + itemHeight > threshold) {
         start = Math.max(0, i - overscan);
@@ -111,7 +113,7 @@ export function VirtualizedList<T>(
     const targetHeight = containerHeight + overscan * 2 * estimatedItemHeight;
 
     for (let i = start; i < items.length; i++) {
-      const itemHeight = itemHeightsRef.current.get(i) ?? estimatedItemHeight;
+      const itemHeight = itemHeights.get(i) ?? estimatedItemHeight;
       accumulatedHeight += itemHeight;
       if (accumulatedHeight > targetHeight) {
         end = Math.min(items.length, i + overscan);
@@ -128,20 +130,22 @@ export function VirtualizedList<T>(
   }, [
     shouldVirtualize,
     items.length,
+    scrollTop,
     containerHeight,
     estimatedItemHeight,
     overscan,
+    itemHeights,
   ]);
 
   const offsetY = useMemo(() => {
     if (!shouldVirtualize) return 0;
     let offset = 0;
     for (let i = 0; i < visibleRange.start; i++) {
-      const h = itemHeightsRef.current.get(i) ?? estimatedItemHeight;
+      const h = itemHeights.get(i) ?? estimatedItemHeight;
       offset += h;
     }
     return offset;
-  }, [shouldVirtualize, visibleRange.start, estimatedItemHeight]);
+  }, [shouldVirtualize, visibleRange.start, estimatedItemHeight, itemHeights]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -163,14 +167,19 @@ export function VirtualizedList<T>(
   useEffect(() => {
     if (initialScrollTop > 0 && containerRef.current) {
       containerRef.current.scrollTop = initialScrollTop;
-      scrollTopRef.current = initialScrollTop;
     }
   }, [initialScrollTop]);
 
   const handleScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement>) => {
-      const scrollTop = e.currentTarget.scrollTop;
-      scrollTopRef.current = scrollTop;
+      const nextScrollTop = e.currentTarget.scrollTop;
+      if (scrollRafRef.current !== null) {
+        cancelAnimationFrame(scrollRafRef.current);
+      }
+      scrollRafRef.current = requestAnimationFrame(() => {
+        setScrollTop(nextScrollTop);
+        scrollRafRef.current = null;
+      });
 
       setIsScrolling(true);
       if (scrollTimeoutRef.current) {
@@ -180,7 +189,7 @@ export function VirtualizedList<T>(
         setIsScrolling(false);
       }, 150);
 
-      onScroll?.(scrollTop, e.currentTarget.scrollHeight);
+      onScroll?.(nextScrollTop, e.currentTarget.scrollHeight);
     },
     [onScroll],
   );
@@ -192,7 +201,7 @@ export function VirtualizedList<T>(
       const children = innerRef.current?.children;
       if (!children) return;
 
-      const newHeights = new Map(itemHeightsRef.current);
+      const newHeights = new Map(itemHeights);
       let changed = false;
 
       for (let i = 0; i < children.length; i++) {
@@ -210,12 +219,23 @@ export function VirtualizedList<T>(
       }
 
       if (changed) {
-        itemHeightsRef.current = newHeights;
+        setItemHeights(newHeights);
       }
     }, 0);
 
     return () => clearTimeout(timeout);
-  }, [shouldVirtualize, visibleRange, items]);
+  }, [shouldVirtualize, visibleRange, items, itemHeights]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollRafRef.current !== null) {
+        cancelAnimationFrame(scrollRafRef.current);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -324,9 +344,7 @@ export function VirtualizedList<T>(
   const totalHeightNum = typeof totalHeight === "number" ? totalHeight : 0;
   const scrollPercent =
     totalHeightNum > containerHeight
-      ? Math.round(
-          (scrollTopRef.current / (totalHeightNum - containerHeight)) * 100,
-        )
+      ? Math.round((scrollTop / (totalHeightNum - containerHeight)) * 100)
       : 100;
 
   return (
@@ -341,7 +359,6 @@ export function VirtualizedList<T>(
         onScroll={handleScroll}
         role="list"
         aria-label={ariaLabel}
-        aria-setsize={items.length}
         aria-live="polite"
         tabIndex={0}
         onKeyDown={handleKeyDown}
@@ -380,7 +397,7 @@ export function VirtualizedList<T>(
           <div>Rendering: {visibleItems.length} items</div>
           <div>Total height: {totalHeightNum}px</div>
           <div>Container: {Math.round(containerHeight)}px</div>
-          <div>Scroll top: {Math.round(scrollTopRef.current)}px</div>
+          <div>Scroll top: {Math.round(scrollTop)}px</div>
           <div>Offset Y: {Math.round(offsetY)}px</div>
         </div>
       )}

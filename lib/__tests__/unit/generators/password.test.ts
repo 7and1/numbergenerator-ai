@@ -4,7 +4,6 @@
 
 import { describe, it, expect } from "vitest";
 import { generatePassword, generateDigit } from "../../../generators/password";
-import type { GeneratorParams } from "../../../types";
 
 describe("generatePassword", () => {
   describe("basic functionality", () => {
@@ -122,6 +121,7 @@ describe("generatePassword", () => {
     it("should add grouping when enabled", () => {
       const result = generatePassword({
         length: 16,
+        charset: "numeric",
         grouping: true,
         count: 1,
       });
@@ -133,6 +133,7 @@ describe("generatePassword", () => {
     it("should not add grouping when disabled", () => {
       const result = generatePassword({
         length: 16,
+        charset: "numeric",
         grouping: false,
         count: 1,
       });
@@ -143,6 +144,7 @@ describe("generatePassword", () => {
     it("should not group short passwords", () => {
       const result = generatePassword({
         length: 4,
+        charset: "numeric",
         grouping: true,
         count: 1,
       });

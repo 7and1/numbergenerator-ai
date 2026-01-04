@@ -187,6 +187,7 @@ export function CompactBreadcrumbs({
   // Find category (second-to-last item) and current (last item)
   const category = items[items.length - 2];
   const current = items[items.length - 1];
+  const categoryName = category.name === "..." ? categoryLabel : category.name;
 
   return (
     <>
@@ -214,7 +215,7 @@ export function CompactBreadcrumbs({
           href={category.href}
           className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
         >
-          {category.name}
+          {categoryName}
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700" />
         <span className="text-zinc-900 dark:text-zinc-100 font-medium">

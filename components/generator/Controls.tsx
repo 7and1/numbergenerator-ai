@@ -11,105 +11,6 @@ const cn = (...classes: (string | false | undefined | null)[]) => {
   return classes.filter(Boolean).join(" ");
 };
 
-const PASSWORD_SETS = {
-  lower: "abcdefghijkmnpqrstuvwxyz",
-  upper: "ABCDEFGHJKLMNPQRSTUVWXYZ",
-  digits: "23456789",
-  symbols: "!@#$%^&*()_+-=~[]{};:,.?",
-} as const;
-
-const AMBIGUOUS_CHARS = "0O1lI|`'\"\\,.:;";
-
-const uniqCharsCount = (s: string) => new Set(s.split("")).size;
-
-const removeChars = (source: string, remove: string) => {
-  if (!remove) return source;
-  const set = new Set(remove.split(""));
-  return source
-    .split("")
-    .filter((c) => !set.has(c))
-    .join("");
-};
-
-/**
- * Generate a sample password based on current params for strength calculation
- */
-const generateSamplePassword = (
-  length: number,
-  pool: string,
-  includeLower: boolean | undefined,
-  includeUpper: boolean | undefined,
-  includeDigits: boolean | undefined,
-  includeSymbols: boolean | undefined,
-  ensureEach: boolean | undefined,
-  excludeAmbiguous: boolean | undefined,
-  excludeChars: string | undefined,
-  charset: GeneratorParams["charset"],
-): string => {
-  const len = Math.max(1, Math.min(64, Math.floor(length)));
-  const groups: string[] = [];
-
-  if (typeof includeLower === "boolean") {
-    if (includeLower) groups.push("abcdefghijkmnpqrstuvwxyz");
-  } else {
-    groups.push("abcdefghijkmnpqrstuvwxyz");
-  }
-  if (typeof includeUpper === "boolean") {
-    if (includeUpper) groups.push("ABCDEFGHJKLMNPQRSTUVWXYZ");
-  } else {
-    groups.push("ABCDEFGHJKLMNPQRSTUVWXYZ");
-  }
-  if (typeof includeDigits === "boolean") {
-    if (includeDigits) groups.push("23456789");
-  } else {
-    groups.push("23456789");
-  }
-  if (typeof includeSymbols === "boolean") {
-    if (includeSymbols) groups.push("!@#$%^&*()_+-=~[]{};:,.?");
-  } else {
-    groups.push("!@#$%^&*()_+-=~[]{};:,.?");
-  }
-
-  // Build pool based on character sets
-  let effectivePool = pool;
-  if (excludeAmbiguous) {
-    effectivePool = removeChars(effectivePool, AMBIGUOUS_CHARS);
-  }
-  if (typeof excludeChars === "string" && excludeChars.length) {
-    effectivePool = removeChars(effectivePool, excludeChars);
-  }
-
-  if (!effectivePool.length) {
-    effectivePool =
-      "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz!@#$%^&*()_+-=";
-  }
-
-  // For ensure_each, pick at least one from each group
-  const pieces: string[] = [];
-  const ensure = Boolean(ensureEach);
-  if (ensure && groups.length > 0) {
-    for (const g of groups) {
-      let gg = g;
-      if (excludeAmbiguous) gg = removeChars(gg, AMBIGUOUS_CHARS);
-      if (typeof excludeChars === "string" && excludeChars.length)
-        gg = removeChars(gg, excludeChars);
-      if (!gg.length) continue;
-      const idx = Math.floor(Math.random() * gg.length);
-      pieces.push(gg[idx]!);
-    }
-  }
-
-  // Fill remaining with random from pool
-  while (pieces.length < len) {
-    const idx = Math.floor(Math.random() * effectivePool.length);
-    pieces.push(effectivePool[idx]!);
-  }
-
-  // Shuffle and return
-  const shuffled = pieces.sort(() => Math.random() - 0.5);
-  return shuffled.join("").slice(0, len);
-};
-
 interface NumberFieldProps {
   label: string;
   value: number | undefined;
@@ -136,10 +37,10 @@ const NumberField = memo<NumberFieldProps>(
     );
 
     return (
-      <div className="bg-zinc-50 dark:bg-zinc-900/40 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 ring-black/70">
+      <div className="group bg-zinc-50/80 dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 transition-all duration-200 focus-within:ring-2 focus-within:ring-violet-500/50 focus-within:border-violet-400 dark:focus-within:border-violet-500 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm">
         <label
           htmlFor={inputId}
-          className="block text-xs font-bold text-zinc-400 uppercase mb-1"
+          className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-1.5 group-focus-within:text-violet-600 dark:group-focus-within:text-violet-400 transition-colors duration-200"
         >
           {label}
         </label>
@@ -151,7 +52,7 @@ const NumberField = memo<NumberFieldProps>(
           max={max}
           step={step}
           onChange={handleChange}
-          className="w-full bg-transparent text-xl font-bold text-zinc-900 dark:text-white outline-none font-mono"
+          className="w-full bg-transparent text-xl font-bold text-zinc-900 dark:text-white outline-none font-mono tabular-nums placeholder:text-zinc-300 dark:placeholder:text-zinc-700 selection:bg-violet-200 selection:text-violet-900 dark:selection:bg-violet-700 dark:selection:text-violet-100"
           aria-describedby={`${inputId}-description`}
         />
       </div>
@@ -193,10 +94,10 @@ const TextAreaField = memo<TextAreaFieldProps>(
     const helpId = `${inputId}-help`;
 
     return (
-      <div className="bg-zinc-50 dark:bg-zinc-900/40 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 ring-black/70">
+      <div className="group bg-zinc-50/80 dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 transition-all duration-200 focus-within:ring-2 focus-within:ring-violet-500/50 focus-within:border-violet-400 dark:focus-within:border-violet-500 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm">
         <label
           htmlFor={inputId}
-          className="block text-xs font-bold text-zinc-400 uppercase mb-2"
+          className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-violet-600 dark:group-focus-within:text-violet-400 transition-colors duration-200"
         >
           {label}
         </label>
@@ -206,13 +107,13 @@ const TextAreaField = memo<TextAreaFieldProps>(
           onChange={handleChange}
           placeholder={placeholder}
           rows={rows}
-          className="w-full bg-transparent text-sm font-semibold text-zinc-900 dark:text-white outline-none font-mono resize-y"
+          className="w-full bg-transparent text-sm font-medium text-zinc-900 dark:text-white outline-none font-mono resize-y placeholder:text-zinc-400 dark:placeholder:text-zinc-600 leading-relaxed selection:bg-violet-200 selection:text-violet-900 dark:selection:bg-violet-700 dark:selection:text-violet-100"
           aria-describedby={help ? helpId : undefined}
         />
         {help && (
           <div
             id={helpId}
-            className="mt-2 text-xs text-zinc-500 dark:text-zinc-400"
+            className="mt-3 pt-3 border-t border-zinc-200/50 dark:border-zinc-700/50 text-xs text-zinc-500 dark:text-zinc-400 font-medium"
           >
             {help}
           </div>
@@ -256,27 +157,71 @@ const ToggleField = memo<ToggleFieldProps>(
     return (
       <label
         htmlFor={inputId}
-        className="flex items-start gap-3 text-sm text-zinc-700 dark:text-zinc-200 select-none bg-zinc-50 dark:bg-zinc-900/40 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 cursor-pointer"
+        className={cn(
+          "flex items-start gap-4 p-4 rounded-2xl border transition-all duration-200 cursor-pointer select-none shadow-sm",
+          checked
+            ? "bg-violet-600 border-violet-600 shadow-violet-500/25 transform scale-[1.01]"
+            : "bg-zinc-50/80 dark:bg-zinc-900/60 border-zinc-200/60 dark:border-zinc-800/60 hover:border-violet-300 dark:hover:border-violet-700/50 hover:bg-violet-50/50 dark:hover:bg-violet-950/20",
+        )}
       >
-        <input
-          id={inputId}
-          type="checkbox"
-          checked={checked}
-          onChange={handleChange}
-          className="mt-0.5 h-4 w-4 accent-black"
-          aria-describedby={description ? descriptionId : undefined}
-        />
-        <span className="min-w-0">
-          <span className="block font-bold">{label}</span>
+        <div className="relative flex items-center mt-0.5">
+          <input
+            id={inputId}
+            type="checkbox"
+            checked={checked}
+            onChange={handleChange}
+            className="sr-only peer"
+            aria-describedby={description ? descriptionId : undefined}
+          />
+          <div
+            className={cn(
+              "w-6 h-6 rounded-lg border-2 transition-all duration-200 flex items-center justify-center",
+              checked
+                ? "border-white bg-white"
+                : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900",
+            )}
+          >
+            {checked && (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-violet-600"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            )}
+          </div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <span
+            className={cn(
+              "block text-sm font-bold transition-colors duration-200",
+              checked ? "text-white" : "text-zinc-700 dark:text-zinc-300",
+            )}
+          >
+            {label}
+          </span>
           {description && (
             <span
               id={descriptionId}
-              className="block text-xs text-zinc-500 dark:text-zinc-400"
+              className={cn(
+                "block text-xs mt-1 transition-colors duration-200 leading-normal",
+                checked
+                  ? "text-violet-100"
+                  : "text-zinc-500 dark:text-zinc-400",
+              )}
             >
               {description}
             </span>
           )}
-        </span>
+        </div>
       </label>
     );
   },
@@ -287,56 +232,6 @@ const ToggleField = memo<ToggleFieldProps>(
 );
 
 ToggleField.displayName = "ToggleField";
-
-// Memoized pool calculation for password mode
-const usePasswordPool = (
-  charset: GeneratorParams["charset"],
-  customCharset: string | undefined,
-  includeLower: boolean | undefined,
-  includeUpper: boolean | undefined,
-  includeDigits: boolean | undefined,
-  includeSymbols: boolean | undefined,
-  excludeAmbiguous: boolean | undefined,
-  excludeChars: string | undefined,
-  showPro: boolean,
-) => {
-  return useMemo(() => {
-    if (!showPro) {
-      if (charset === "custom") return customCharset ?? "";
-      if (charset === "numeric") return "0123456789";
-      if (charset === "hex") return "0123456789ABCDEF";
-      if (charset === "alphanumeric")
-        return "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
-      return "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz!@#$%^&*()_+-=";
-    }
-    const useLower = includeLower ?? true;
-    const useUpper = includeUpper ?? true;
-    const useDigits = includeDigits ?? true;
-    const useSymbols = includeSymbols ?? true;
-    const groups: string[] = [];
-    if (useLower) groups.push(PASSWORD_SETS.lower);
-    if (useUpper) groups.push(PASSWORD_SETS.upper);
-    if (useDigits) groups.push(PASSWORD_SETS.digits);
-    if (useSymbols) groups.push(PASSWORD_SETS.symbols);
-    let p = groups.length
-      ? groups.join("")
-      : "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz!@#$%^&*()_+-=";
-    if (excludeAmbiguous) p = removeChars(p, AMBIGUOUS_CHARS);
-    if (typeof excludeChars === "string" && excludeChars.length)
-      p = removeChars(p, excludeChars);
-    return p;
-  }, [
-    charset,
-    customCharset,
-    includeLower,
-    includeUpper,
-    includeDigits,
-    includeSymbols,
-    excludeAmbiguous,
-    excludeChars,
-    showPro,
-  ]);
-};
 
 // Separate component for password mode with memoization
 const PasswordControls = memo<{
@@ -357,17 +252,6 @@ const PasswordControls = memo<{
       typeof params.ensure_each === "boolean";
 
     const len = params.length ?? 12;
-    const pool = usePasswordPool(
-      charset,
-      params.custom_charset,
-      params.include_lower,
-      params.include_upper,
-      params.include_digits,
-      params.include_symbols,
-      params.exclude_ambiguous,
-      params.exclude_chars,
-      showPro,
-    );
 
     // Generate a sample password for strength calculation (representative)
     // Using a deterministic approach - take the first character from each set
@@ -376,7 +260,6 @@ const PasswordControls = memo<{
 
       if (!showPro) {
         // For non-pro mode, use charset-based representative
-        let effectivePool = pool;
         if (charset === "numeric") {
           return "8".repeat(sampleLen);
         }
@@ -414,7 +297,6 @@ const PasswordControls = memo<{
       return sample;
     }, [
       len,
-      pool,
       showPro,
       charset,
       params.include_lower,

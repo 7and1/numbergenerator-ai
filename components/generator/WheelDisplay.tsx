@@ -135,7 +135,7 @@ const WheelDisplay = memo(function WheelDisplay({
             <div
               key={`${label}-${i}`}
               role="listitem"
-              aria-selected={active}
+              aria-current={active ? "true" : undefined}
               className={[
                 "flex items-center gap-2 rounded-xl border px-2 sm:px-3 py-2 transition-colors",
                 active

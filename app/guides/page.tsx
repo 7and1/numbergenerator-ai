@@ -1,13 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { BookOpen, Dice6, Key, Hash, Loader2 } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui";
 import { PAGE_BREADCRUMBS } from "@/lib/breadcrumbs";
+
+const BASE_URL = "https://numbergenerator.ai";
 
 export const metadata: Metadata = {
   title: "Guides & Tutorials",
   description:
     "Learn how to use NumberGenerator.ai tools with our comprehensive guides and tutorials.",
+  alternates: {
+    canonical: `${BASE_URL}/guides/`,
+  },
+  openGraph: {
+    title: "Guides & Tutorials - NumberGenerator.ai",
+    description:
+      "Learn how to use NumberGenerator.ai tools with our comprehensive guides and tutorials.",
+    url: `${BASE_URL}/guides/`,
+    siteName: "NumberGenerator.ai",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Guides & Tutorials - NumberGenerator.ai",
+    description:
+      "Learn how to use NumberGenerator.ai tools with our comprehensive guides and tutorials.",
+  },
 };
 
 const guides = [

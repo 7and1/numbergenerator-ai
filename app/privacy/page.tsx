@@ -1,13 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Shield, Eye, Cookie, Trash2 } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui";
 import { PAGE_BREADCRUMBS } from "@/lib/breadcrumbs";
+
+const BASE_URL = "https://numbergenerator.ai";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "Learn how NumberGenerator.ai protects your privacy. No tracking, no ads, no data collection. All generation happens locally in your browser.",
+  alternates: {
+    canonical: `${BASE_URL}/privacy/`,
+  },
+  openGraph: {
+    title: "Privacy Policy - NumberGenerator.ai",
+    description:
+      "Learn how NumberGenerator.ai protects your privacy. No tracking, no ads, no data collection.",
+    url: `${BASE_URL}/privacy/`,
+    siteName: "NumberGenerator.ai",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Privacy Policy - NumberGenerator.ai",
+    description:
+      "Learn how NumberGenerator.ai protects your privacy. No tracking, no ads, no data collection.",
+  },
 };
 
 export default function PrivacyPage() {

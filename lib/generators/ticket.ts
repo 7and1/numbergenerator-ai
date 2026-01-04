@@ -12,11 +12,7 @@ import {
   valueAtIndex,
   shuffleInPlace,
 } from "../core/arrays";
-import {
-  randomIntInclusive,
-  sampleUniqueIndices,
-  setCurrentMode,
-} from "../core/samplers";
+import { sampleUniqueIndices, setCurrentMode } from "../core/samplers";
 
 export function generateTicket(params: GeneratorParams): {
   values: string[];
@@ -44,7 +40,7 @@ export function generateTicket(params: GeneratorParams): {
 
   const remaining =
     Array.isArray(params.ticket_remaining) && params.ticket_remaining.length
-      ? params.ticket_remaining
+      ? normalizedItemsAndWeights(params.ticket_remaining).items
       : pool;
   if (!remaining.length) return { values: [], meta: {}, warnings };
 

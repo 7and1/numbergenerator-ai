@@ -1,13 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { HelpCircle, Shield, Zap, Smartphone, Globe, Code } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui";
 import { PAGE_BREADCRUMBS } from "@/lib/breadcrumbs";
+
+const BASE_URL = "https://numbergenerator.ai";
 
 export const metadata: Metadata = {
   title: "FAQ - Frequently Asked Questions",
   description:
     "Find answers to common questions about NumberGenerator.ai - privacy, security, how it works, and more.",
+  alternates: {
+    canonical: `${BASE_URL}/faq/`,
+  },
+  openGraph: {
+    title: "FAQ - NumberGenerator.ai",
+    description:
+      "Find answers to common questions about NumberGenerator.ai - privacy, security, how it works, and more.",
+    url: `${BASE_URL}/faq/`,
+    siteName: "NumberGenerator.ai",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FAQ - NumberGenerator.ai",
+    description:
+      "Find answers to common questions about NumberGenerator.ai - privacy, security, how it works, and more.",
+  },
 };
 
 const faqs = [
@@ -77,9 +95,28 @@ const faqs = [
   },
 ];
 
+// Build FAQPage schema for structured data
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage" as const,
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question" as const,
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer" as const,
+      text: faq.answer,
+    },
+  })),
+};
+
 export default function FAQPage() {
   return (
     <main className="min-h-screen bg-white dark:bg-black">
+      {/* FAQPage Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <div className="max-w-3xl mx-auto px-4 py-12 md:py-16">
         {/* Breadcrumb */}
         <div className="mb-8">

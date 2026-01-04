@@ -1,13 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { FileText, AlertTriangle, Gavel, Users } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui";
 import { PAGE_BREADCRUMBS } from "@/lib/breadcrumbs";
+
+const BASE_URL = "https://numbergenerator.ai";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
     "Terms of Service for NumberGenerator.ai. Free random number generators with no warranties and no data collection.",
+  alternates: {
+    canonical: `${BASE_URL}/terms/`,
+  },
+  openGraph: {
+    title: "Terms of Service - NumberGenerator.ai",
+    description:
+      "Terms of Service for NumberGenerator.ai. Free random number generators with no warranties.",
+    url: `${BASE_URL}/terms/`,
+    siteName: "NumberGenerator.ai",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Terms of Service - NumberGenerator.ai",
+    description:
+      "Terms of Service for NumberGenerator.ai. Free random number generators with no warranties.",
+  },
 };
 
 export default function TermsPage() {

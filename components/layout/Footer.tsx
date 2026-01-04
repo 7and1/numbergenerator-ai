@@ -6,39 +6,38 @@ const currentYear = new Date().getFullYear();
 
 const footerSections = [
   {
-    title: "Product",
+    title: "Tools",
     links: [
       { href: "/#all-tools", label: "All Tools" },
+      { href: "/1-100", label: "Random 1-100" },
+      { href: "/password-strong", label: "Password Generator" },
       { href: "/combo", label: "Combo Generator" },
-      { href: "#", label: "API", disabled: true },
     ],
   },
   {
     title: "Resources",
     links: [
-      { href: "/blog", label: "Blog", disabled: true },
       { href: "/guides", label: "Guides" },
       { href: "/faq", label: "FAQ" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { href: "/about", label: "About" },
-      { href: "/privacy", label: "Privacy Policy" },
-      { href: "/terms", label: "Terms of Service" },
-      {
-        href: "mailto:hello@numbergenerator.ai",
-        label: "Contact",
-        external: true,
-      },
+      { href: "/about", label: "About Us" },
     ],
   },
   {
     title: "Legal",
     links: [
       { href: "/privacy", label: "Privacy Policy" },
+      { href: "/terms", label: "Terms of Service" },
       { href: "/cookies", label: "Cookie Policy" },
+    ],
+  },
+  {
+    title: "Contact",
+    links: [
+      {
+        href: "mailto:hello@numbergenerator.ai",
+        label: "hello@numbergenerator.ai",
+        external: true,
+      },
     ],
   },
 ];
@@ -88,7 +87,7 @@ function FooterLink({ href, label, disabled, external }: FooterLinkProps) {
       <li>
         <a
           href={href}
-          className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/50 focus-visible:ring-inset rounded"
+          className="text-zinc-600 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50 focus-visible:ring-inset rounded"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -102,7 +101,7 @@ function FooterLink({ href, label, disabled, external }: FooterLinkProps) {
     <li>
       <Link
         href={href}
-        className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/50 focus-visible:ring-inset rounded"
+        className="text-zinc-600 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50 focus-visible:ring-inset rounded"
       >
         {label}
       </Link>
@@ -137,43 +136,52 @@ function FooterSection({ title, links }: FooterSectionProps) {
 
 const Footer = memo(function Footer() {
   return (
-    <footer className="w-full bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+    <footer className="w-full bg-gradient-to-b from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900 border-t border-zinc-200/60 dark:border-zinc-800/60">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
         {/* Main Footer Sections */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 lg:gap-12 mb-16">
           {footerSections.map((section) => (
             <FooterSection key={section.title} {...section} />
           ))}
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            {/* Copyright */}
-            <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-              <span>Copyright</span>
-              <span className="text-zinc-400 dark:text-zinc-600">
-                {currentYear}
+        <div className="pt-8 border-t border-zinc-200/60 dark:border-zinc-800/60 flex flex-col md:flex-row items-center justify-between gap-6">
+          {/* Copyright & Info */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+            <div className="flex items-center gap-2">
+              <span>© {currentYear}</span>
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                NumberGenerator.ai
               </span>
-              <span className="font-semibold">NumberGenerator.ai</span>
-              <span className="text-zinc-300 dark:text-zinc-700">|</span>
             </div>
+            <span className="hidden sm:inline text-zinc-300 dark:text-zinc-700">
+              •
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span>Made with</span>
+              <Heart
+                className="w-4 h-4 text-rose-500 fill-rose-500"
+                aria-hidden="true"
+              />
+              <span>& CSPRNG</span>
+            </div>
+          </div>
 
+          {/* Social & Legal */}
+          <div className="flex flex-col sm:flex-row items-center gap-6">
             {/* Social Links */}
-            <nav
-              className="flex items-center gap-4"
-              aria-label="Social media links"
-            >
+            <nav className="flex items-center gap-2" aria-label="Social media">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
                 return (
                   <a
                     key={social.name}
                     href={social.href}
-                    className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/50 focus-visible:ring-inset rounded p-1"
+                    className="text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors duration-200 p-2.5 -m-2.5 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-950/20"
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Visit ${social.name}`}
+                    aria-label={social.name}
                   >
                     <Icon className="w-5 h-5" aria-hidden="true" />
                   </a>
@@ -181,27 +189,16 @@ const Footer = memo(function Footer() {
               })}
             </nav>
 
-            {/* Built With */}
-            <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-              <span>Built with</span>
-              <Heart
-                className="w-4 h-4 text-red-500 fill-red-500"
-                aria-hidden="true"
-              />
-              <span>using Web Crypto CSPRNG</span>
-            </div>
-          </div>
+            <div className="hidden sm:block w-px h-5 bg-zinc-200/60 dark:bg-zinc-800/60" />
 
-          {/* Additional Legal Links */}
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-zinc-500 dark:text-zinc-400">
-            <span>No tracking. No ads. No data collection.</span>
-            <span className="text-zinc-300 dark:text-zinc-700">|</span>
-            <Link
-              href="/sitemap.xml"
-              className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/50 focus-visible:ring-inset rounded"
-            >
-              Sitemap
-            </Link>
+            <div className="flex items-center gap-6 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              <Link
+                href="/sitemap.xml"
+                className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors duration-200"
+              >
+                Sitemap
+              </Link>
+            </div>
           </div>
         </div>
       </div>

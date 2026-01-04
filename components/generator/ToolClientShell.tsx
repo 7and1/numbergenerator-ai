@@ -170,7 +170,7 @@ export default function ToolClientShell({ config }: { config: ToolConfig }) {
     subscribeUserData,
     getUserDataSnapshot,
     getUserDataServerSnapshot,
-  ) as { favorites: { key: string }[] };
+  ) as { favorites: ReadonlyArray<{ key: string }> };
 
   const pathKey = useMemo(() => {
     if (typeof window === "undefined") return `/${effectiveConfig.slug}/`;

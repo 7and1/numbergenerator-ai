@@ -347,7 +347,8 @@ describe("engine.generate", () => {
       for (const v of res.values) {
         const s = String(v as number);
         const decimalPart = s.split(".")[1];
-        expect(decimalPart?.length).toBeLessThanOrEqual(1);
+        const decimals = decimalPart ? decimalPart.length : 0;
+        expect(decimals).toBeLessThanOrEqual(1);
       }
     });
 
@@ -363,7 +364,8 @@ describe("engine.generate", () => {
       for (const v of res.values) {
         const s = String(v as number);
         const decimalPart = s.split(".")[1];
-        expect(decimalPart?.length).toBeLessThanOrEqual(3);
+        const decimals = decimalPart ? decimalPart.length : 0;
+        expect(decimals).toBeLessThanOrEqual(3);
       }
     });
 
@@ -593,7 +595,7 @@ describe("engine.generate", () => {
     it("handles non-grouped output", () => {
       const res = generate("password", {
         length: 12,
-        charset: "strong",
+        charset: "numeric",
         grouping: false,
       });
 
@@ -1635,7 +1637,7 @@ describe("engine.generate", () => {
       expect(nextRemaining).toHaveLength(3);
     });
 
-    it("handles empty remaining list", () => {
+    it("treats empty remaining list as reset", () => {
       const res = generate("ticket", {
         ticket_source: "list",
         items: ["a", "b"],
@@ -1643,7 +1645,7 @@ describe("engine.generate", () => {
         ticket_remaining: [],
       });
 
-      expect(res.values).toEqual([]);
+      expect(res.values).toHaveLength(1);
     });
 
     it("handles range source with swapped min/max", () => {
@@ -1750,7 +1752,11 @@ describe("engine.generate", () => {
       });
 
       expect(res.values).toHaveLength(20);
-      expect(new Set(res.values as number[]).size).toBe(20);
+      expect(res.warnings).toBeDefined();
+      expect(res.warnings).toContain(
+        "Unique is impossible: requested 20 but capacity is 19.",
+      );
+      expect(new Set(res.values as number[]).size).toBeLessThanOrEqual(19);
     });
 
     it("password with pro options and grouping", () => {

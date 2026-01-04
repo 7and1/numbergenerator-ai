@@ -2,7 +2,7 @@ import Link from "next/link";
 import { memo } from "react";
 import { CONFIG_MAP } from "@/lib/configMap";
 import type { ToolConfig } from "@/lib/types";
-import { Hash, Lock, Ticket, Box, Circle, List, Dice1 } from "lucide-react";
+import { Lock, Ticket, Box, Circle, List, Dice1 } from "lucide-react";
 
 const CATEGORY_CONFIG = [
   {
@@ -70,9 +70,9 @@ const ToolLink = memo(function ToolLink({ tool }: ToolLinkProps) {
   return (
     <Link
       href={`/${tool.slug}`}
-      className="group rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/30 p-3 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+      className="group rounded-lg border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/50 p-3 hover:border-violet-300 dark:hover:border-violet-700/50 hover:bg-violet-50/80 dark:hover:bg-violet-950/20 transition-all duration-200"
     >
-      <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100 group-hover:underline underline-offset-4">
+      <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors duration-200">
         {tool.title}
       </div>
     </Link>

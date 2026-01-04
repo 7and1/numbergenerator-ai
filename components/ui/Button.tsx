@@ -18,13 +18,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-black text-white dark:bg-white dark:text-black border-transparent hover:bg-zinc-800 dark:hover:bg-zinc-200 focus:ring-2 focus:ring-black/50 focus:ring-offset-2 dark:focus:ring-white/50",
+    "bg-gradient-to-br from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 dark:from-violet-500 dark:to-indigo-500 dark:hover:from-violet-400 dark:hover:to-indigo-400 text-white border-transparent hover:shadow-lg hover:shadow-violet-500/25 focus:ring-2 focus:ring-violet-500/50 focus:ring-offset-2",
   secondary:
-    "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 focus:ring-2 focus:ring-zinc-400/50 focus:ring-offset-2",
+    "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-800 hover:border-violet-300 dark:hover:border-violet-700 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/20 focus:ring-2 focus:ring-violet-500/50 focus:ring-offset-2",
   ghost:
-    "bg-transparent text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:ring-2 focus:ring-zinc-400/50 focus:ring-inset",
+    "bg-transparent text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:text-violet-600 dark:hover:text-violet-400 focus:ring-2 focus:ring-violet-500/50 focus:ring-inset",
   danger:
-    "bg-red-600 text-white border-transparent hover:bg-red-700 focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2",
+    "bg-rose-600 text-white border-transparent hover:bg-rose-700 focus:ring-2 focus:ring-rose-500/50 focus:ring-offset-2",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

@@ -4,7 +4,6 @@
 
 import { describe, it, expect } from "vitest";
 import { generateDice } from "../../../generators/dice";
-import type { GeneratorParams } from "../../../types";
 
 describe("generateDice", () => {
   describe("basic functionality", () => {
@@ -194,7 +193,10 @@ describe("generateDice", () => {
         dice_modifier: 5,
       });
       const meta = result.meta?.d20 as {
-        a: number; b: number; kept: number; modifier: number;
+        a: number;
+        b: number;
+        kept: number;
+        modifier: number;
       };
       expect(meta.modifier).toBe(5);
       expect(result.values[0]).toBe(Math.max(meta.a, meta.b) + 5);
@@ -383,8 +385,8 @@ describe("generateDice", () => {
       });
       expect(result.values).toHaveLength(1);
       expect(result.bonus_values).toHaveLength(1);
-      expect((result.values[0] as number)).toBeGreaterThanOrEqual(6);
-      expect((result.values[0] as number)).toBeLessThanOrEqual(25);
+      expect(result.values[0] as number).toBeGreaterThanOrEqual(6);
+      expect(result.values[0] as number).toBeLessThanOrEqual(25);
     });
 
     it("should simulate saving throw with disadvantage", () => {
@@ -418,18 +420,18 @@ describe("generateDice", () => {
       });
       expect(result.values).toHaveLength(2);
       expect(result.meta?.total).toBeDefined();
-      expect((result.meta?.total as number)).toBeGreaterThan(0);
+      expect(result.meta?.total as number).toBeGreaterThan(0);
     });
 
-    it("should simulate fireball 8D6', () => {
+    it("should simulate fireball 8D6", () => {
       const result = generateDice({
         dice_sides: 6,
         dice_rolls: 8,
       });
       expect(result.values).toHaveLength(8);
       expect(result.meta?.total).toBeDefined();
-      expect((result.meta?.total as number)).toBeGreaterThanOrEqual(8);
-      expect((result.meta?.total as number)).toBeLessThanOrEqual(48);
+      expect(result.meta?.total as number).toBeGreaterThanOrEqual(8);
+      expect(result.meta?.total as number).toBeLessThanOrEqual(48);
     });
   });
 });

@@ -21,12 +21,15 @@ const USERDATA_EVENT = "ng:userdata";
 const isBrowser = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 
-type UserDataSnapshot = { favorites: FavoriteItem[]; recents: RecentItem[] };
+type UserDataSnapshot = Readonly<{
+  favorites: ReadonlyArray<FavoriteItem>;
+  recents: ReadonlyArray<RecentItem>;
+}>;
 
-const SERVER_SNAPSHOT: UserDataSnapshot = {
-  favorites: [],
-  recents: [],
-};
+const SERVER_SNAPSHOT: UserDataSnapshot = Object.freeze({
+  favorites: Object.freeze([]) as ReadonlyArray<FavoriteItem>,
+  recents: Object.freeze([]) as ReadonlyArray<RecentItem>,
+});
 
 let cachedSnapshot: UserDataSnapshot | null = null;
 

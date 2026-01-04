@@ -49,6 +49,17 @@ export const randomUint32 = (): number => {
 };
 
 /**
+ * Generate a random integer in [0, 2^53).
+ * Uses two Uint32 draws to build a 53-bit integer (safe integer range).
+ */
+export const randomUint53 = (): number => {
+  // 21 high bits + 32 low bits = 53 bits
+  const hi = randomUint32() & 0x1f_ffff;
+  const lo = randomUint32();
+  return hi * 0x1_0000_0000 + lo;
+};
+
+/**
  * Generate a random integer in the inclusive range [min, max].
  * Uses rejection sampling for uniform distribution.
  * @throws {Error} If min/max are not finite integers or range is invalid
@@ -65,9 +76,24 @@ export const randomIntInclusive = (min: number, max: number): number => {
   const range = max - min + 1;
   if (range <= 0) throw new Error("randomIntInclusive: invalid range");
 
-  const limit = Math.floor(0x1_0000_0000 / range) * range;
+  // Fast-path for ranges that fit in uint32 space.
+  if (range <= 0x1_0000_0000) {
+    const limit = Math.floor(0x1_0000_0000 / range) * range;
+    while (true) {
+      const x = randomUint32();
+      if (x < limit) return min + (x % range);
+    }
+  }
+
+  // Larger ranges (e.g., milliseconds across years) need >32-bit sampling.
+  // Use 53-bit rejection sampling within JS safe integer space.
+  const MAX_SPACE = 0x20_0000_0000_0000; // 2^53
+  if (range > Number.MAX_SAFE_INTEGER) {
+    throw new Error("randomIntInclusive: range exceeds MAX_SAFE_INTEGER");
+  }
+  const limit = Math.floor(MAX_SPACE / range) * range;
   while (true) {
-    const x = randomUint32();
+    const x = randomUint53();
     if (x < limit) return min + (x % range);
   }
 };
@@ -101,6 +127,7 @@ export const sampleUniqueIndices = (
  * @returns Selected index
  */
 export const weightedPickIndex = (weights: number[]): number => {
+  if (weights.length === 0) return -1;
   let total = 0;
   for (const w of weights) total += w > 0 && Number.isFinite(w) ? w : 0;
   if (total <= 0) return randomIntInclusive(0, weights.length - 1);

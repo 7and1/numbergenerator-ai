@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { X, Download, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,24 +20,21 @@ if (typeof window !== "undefined") {
 
 export function PWAInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-
-  useEffect(() => {
-    // Check if running on iOS
-    const isIOSDevice =
+  const isIOS = useMemo(() => {
+    return (
       /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" &&
         (navigator as unknown as { maxTouchPoints?: number }).maxTouchPoints! >
-          1);
+          1)
+    );
+  }, []);
 
-    setIsIOS(isIOSDevice);
+  const [isInstalled, setIsInstalled] = useState(() => {
+    return window.matchMedia("(display-mode: standalone)").matches;
+  });
 
-    // Check if already installed
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstalled(true);
-      return;
-    }
+  useEffect(() => {
+    if (isInstalled) return;
 
     // Check if previously dismissed
     const dismissed = localStorage.getItem("pwa-prompt-dismissed");
@@ -52,11 +49,12 @@ export function PWAInstallPrompt() {
         localStorage.getItem("visit-count") || "0",
         10,
       );
-      if (isIOSDevice && visitCount >= 3) {
-        setShowPrompt(true);
+      if (isIOS && visitCount >= 3) {
+        const timer = setTimeout(() => setShowPrompt(true), 0);
+        return () => clearTimeout(timer);
       }
       // For other platforms, show if deferredPrompt exists
-      else if (!isIOSDevice && deferredPrompt) {
+      if (!isIOS && deferredPrompt) {
         // Show after first page load with a slight delay
         const timer = setTimeout(() => setShowPrompt(true), 3000);
         return () => clearTimeout(timer);
@@ -69,7 +67,7 @@ export function PWAInstallPrompt() {
       10,
     );
     localStorage.setItem("visit-count", String(currentVisitCount + 1));
-  }, []);
+  }, [isInstalled, isIOS]);
 
   const handleInstall = useCallback(async () => {
     if (!deferredPrompt) {
@@ -144,13 +142,15 @@ export function PWAInstallPrompt() {
                   <span className="flex-shrink-0 w-5 h-5 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold">
                     2
                   </span>
-                  <span>Scroll down and tap "Add to Home Screen"</span>
+                  <span>
+                    Scroll down and tap &quot;Add to Home Screen&quot;
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="flex-shrink-0 w-5 h-5 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold">
                     3
                   </span>
-                  <span>Tap "Add" to confirm</span>
+                  <span>Tap &quot;Add&quot; to confirm</span>
                 </li>
               </ol>
             </div>
@@ -178,7 +178,7 @@ export function PWAInstallPrompt() {
 
 // Component to show offline indicator
 export function OfflineIndicator() {
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -186,8 +186,6 @@ export function OfflineIndicator() {
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-
-    setIsOnline(navigator.onLine);
 
     return () => {
       window.removeEventListener("online", handleOnline);

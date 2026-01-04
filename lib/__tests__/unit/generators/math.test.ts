@@ -9,7 +9,6 @@ import {
   generatePrime,
   generateRoman,
 } from "../../../generators/math";
-import type { GeneratorParams } from "../../../types";
 
 describe("generateFraction", () => {
   describe("basic functionality", () => {
@@ -66,7 +65,9 @@ describe("generateFraction", () => {
         fraction_max: 50,
       });
       // Some results should be whole numbers (no slash)
-      const wholeNumbers = result.values.filter((v) => !(v as string).includes("/"));
+      const wholeNumbers = result.values.filter(
+        (v) => !(v as string).includes("/"),
+      );
       expect(wholeNumbers.length).toBeGreaterThan(0);
     });
   });
@@ -117,7 +118,9 @@ describe("generateFraction", () => {
   describe("fraction format", () => {
     it("should use format with slash", () => {
       const result = generateFraction({ count: 100 });
-      const withSlash = result.values.filter((v) => (v as string).includes("/"));
+      const withSlash = result.values.filter((v) =>
+        (v as string).includes("/"),
+      );
       expect(withSlash.length).toBeGreaterThan(0);
       withSlash.forEach((v) => {
         const parts = (v as string).split("/");
@@ -158,7 +161,7 @@ describe("generatePercentage", () => {
       expect(result.values).toHaveLength(10);
       result.values.forEach((v) => {
         expect(typeof v).toBe("string");
-        expect((v as string)).toContain("%");
+        expect(v as string).toContain("%");
       });
     });
 
@@ -182,7 +185,7 @@ describe("generatePercentage", () => {
       });
     });
 
-    it("should generate decimal percentages when decimals=1', () => {
+    it("should generate decimal percentages when decimals=1", () => {
       const result = generatePercentage({
         count: 50,
         percentage_decimals: 1,
@@ -196,7 +199,7 @@ describe("generatePercentage", () => {
       });
     });
 
-    it("should generate 2 decimal places when decimals=2', () => {
+    it("should generate 2 decimal places when decimals=2", () => {
       const result = generatePercentage({
         count: 50,
         percentage_decimals: 2,
@@ -227,7 +230,7 @@ describe("generatePercentage", () => {
   });
 
   describe("value range", () => {
-    it("should generate values from 0 to 100', () => {
+    it("should generate values from 0 to 100", () => {
       const result = generatePercentage({
         count: 1000,
         percentage_decimals: 0,
@@ -239,7 +242,7 @@ describe("generatePercentage", () => {
       });
     });
 
-    it("should include 0% and 100% possibilities', () => {
+    it("should include 0% and 100% possibilities", () => {
       const result = generatePercentage({
         count: 10000,
         percentage_decimals: 0,
@@ -253,22 +256,22 @@ describe("generatePercentage", () => {
   });
 
   describe("count parameter", () => {
-    it("should clamp count to minimum of 1', () => {
+    it("should clamp count to minimum of 1", () => {
       const result = generatePercentage({ count: 0 });
       expect(result.values).toHaveLength(1);
     });
 
-    it("should clamp count to maximum of 10000', () => {
+    it("should clamp count to maximum of 10000", () => {
       const result = generatePercentage({ count: 20000 });
       expect(result.values).toHaveLength(10000);
     });
   });
 
-  describe("format', () => {
-    it("should include % sign at end', () => {
+  describe("format", () => {
+    it("should include % sign at end", () => {
       const result = generatePercentage({ count: 50 });
       result.values.forEach((v) => {
-        expect((v as string)).toMatch(/\d+%/);
+        expect(v as string).toMatch(/\d+%/);
       });
     });
   });
@@ -276,7 +279,7 @@ describe("generatePercentage", () => {
 
 describe("generatePrime", () => {
   describe("basic functionality", () => {
-    it("should generate prime numbers', () => {
+    it("should generate prime numbers", () => {
       const result = generatePrime({ count: 10 });
       expect(result.values).toHaveLength(10);
       result.values.forEach((v) => {
@@ -285,7 +288,7 @@ describe("generatePrime", () => {
       });
     });
 
-    it("should return metadata', () => {
+    it("should return metadata", () => {
       const result = generatePrime({});
       expect(result.meta).toBeDefined();
       expect(result.meta?.maxPrime).toBeDefined();
@@ -293,8 +296,8 @@ describe("generatePrime", () => {
     });
   });
 
-  describe("maxPrime parameter', () => {
-    it("should not exceed maxPrime', () => {
+  describe("maxPrime parameter", () => {
+    it("should not exceed maxPrime", () => {
       const result = generatePrime({
         count: 100,
         prime_max: 100,
@@ -305,41 +308,41 @@ describe("generatePrime", () => {
       });
     });
 
-    it("should clamp maxPrime to minimum of 2', () => {
+    it("should clamp maxPrime to minimum of 2", () => {
       const result = generatePrime({ prime_max: 1 });
       expect(result.meta?.maxPrime).toBe(2);
     });
 
-    it("should clamp maxPrime to maximum of 1000000', () => {
+    it("should clamp maxPrime to maximum of 1000000", () => {
       const result = generatePrime({ prime_max: 2000000 });
       expect(result.meta?.maxPrime).toBe(1000000);
     });
 
-    it("should default to 1000', () => {
+    it("should default to 1000", () => {
       const result = generatePrime({});
       expect(result.meta?.maxPrime).toBe(1000);
     });
   });
 
-  describe("count parameter', () => {
-    it("should clamp count to minimum of 1', () => {
+  describe("count parameter", () => {
+    it("should clamp count to minimum of 1", () => {
       const result = generatePrime({ count: 0 });
       expect(result.values).toHaveLength(1);
     });
 
-    it("should clamp count to maximum of 10000', () => {
+    it("should clamp count to maximum of 10000", () => {
       const result = generatePrime({ count: 20000 });
       expect(result.values).toHaveLength(10000);
     });
 
-    it("should default to 10', () => {
+    it("should default to 10", () => {
       const result = generatePrime({});
       expect(result.values).toHaveLength(10);
     });
   });
 
-  describe("edge cases', () => {
-    it("should handle very small maxPrime', () => {
+  describe("edge cases", () => {
+    it("should handle very small maxPrime", () => {
       const result = generatePrime({
         count: 10,
         prime_max: 10,
@@ -351,7 +354,7 @@ describe("generatePrime", () => {
       });
     });
 
-    it("should return default primes when no primes found', () => {
+    it("should return default primes when no primes found", () => {
       // This is a fallback case in the code
       const result = generatePrime({
         count: 5,
@@ -361,8 +364,8 @@ describe("generatePrime", () => {
     });
   });
 
-  describe("sieve algorithm', () => {
-    it("should correctly identify primes', () => {
+  describe("sieve algorithm", () => {
+    it("should correctly identify primes", () => {
       const result = generatePrime({
         count: 168, // Number of primes up to 1000
         prime_max: 1000,
@@ -379,8 +382,8 @@ describe("generatePrime", () => {
     });
   });
 
-  describe("known primes', () => {
-    it("should generate first few primes', () => {
+  describe("known primes", () => {
+    it("should generate first few primes", () => {
       const result = generatePrime({
         count: 100,
         prime_max: 30,
@@ -397,7 +400,7 @@ describe("generatePrime", () => {
 
 describe("generateRoman", () => {
   describe("basic functionality", () => {
-    it("should generate Roman numerals', () => {
+    it("should generate Roman numerals", () => {
       const result = generateRoman({ count: 10 });
       expect(result.values).toHaveLength(10);
       result.values.forEach((v) => {
@@ -406,15 +409,15 @@ describe("generateRoman", () => {
       });
     });
 
-    it("should return metadata', () => {
+    it("should return metadata", () => {
       const result = generateRoman({});
       expect(result.meta).toBeDefined();
       expect(result.meta?.maxValue).toBeDefined();
     });
   });
 
-  describe("maxValue parameter', () => {
-    it("should respect maxValue', () => {
+  describe("maxValue parameter", () => {
+    it("should respect maxValue", () => {
       const result = generateRoman({
         count: 100,
         roman_max: 100,
@@ -425,60 +428,41 @@ describe("generateRoman", () => {
       });
     });
 
-    it("should clamp maxValue to minimum of 1', () => {
+    it("should clamp maxValue to minimum of 1", () => {
       const result = generateRoman({ roman_max: 0 });
       expect(result.meta?.maxValue).toBe(1);
     });
 
-    it("should clamp maxValue to maximum of 3999', () => {
+    it("should clamp maxValue to maximum of 3999", () => {
       const result = generateRoman({ roman_max: 5000 });
       expect(result.meta?.maxValue).toBe(3999);
     });
 
-    it("should default to 100', () => {
+    it("should default to 100", () => {
       const result = generateRoman({});
       expect(result.meta?.maxValue).toBe(100);
     });
   });
 
-  describe("count parameter', () => {
-    it("should clamp count to minimum of 1', () => {
+  describe("count parameter", () => {
+    it("should clamp count to minimum of 1", () => {
       const result = generateRoman({ count: 0 });
       expect(result.values).toHaveLength(1);
     });
 
-    it("should clamp count to maximum of 10000', () => {
+    it("should clamp count to maximum of 10000", () => {
       const result = generateRoman({ count: 20000 });
       expect(result.values).toHaveLength(10000);
     });
 
-    it("should default to 10', () => {
+    it("should default to 10", () => {
       const result = generateRoman({});
       expect(result.values).toHaveLength(10);
     });
   });
 
-  describe("Roman numeral conversion', () => {
-    it("should correctly convert basic numerals', () => {
-      const testCases: [number, string][] = [
-        [1, "I"],
-        [2, "II"],
-        [3, "III"],
-        [4, "IV"],
-        [5, "V"],
-        [6, "VI"],
-        [9, "IX"],
-        [10, "X"],
-        [40, "XL"],
-        [50, "L"],
-        [90, "XC"],
-        [100, "C"],
-        [400, "CD"],
-        [500, "D"],
-        [900, "CM"],
-        [1000, "M"],
-      ];
-
+  describe("Roman numeral conversion", () => {
+    it("should correctly convert basic numerals", () => {
       // Generate many values and check they include known patterns
       const result = generateRoman({
         count: 1000,
@@ -493,8 +477,8 @@ describe("generateRoman", () => {
     });
   });
 
-  describe("edge cases', () => {
-    it("should handle maxValue of 1', () => {
+  describe("edge cases", () => {
+    it("should handle maxValue of 1", () => {
       const result = generateRoman({
         count: 5,
         roman_max: 1,
@@ -504,7 +488,7 @@ describe("generateRoman", () => {
       });
     });
 
-    it("should handle common values', () => {
+    it("should handle common values", () => {
       const result = generateRoman({
         count: 100,
         roman_max: 50,

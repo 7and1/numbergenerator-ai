@@ -102,7 +102,7 @@ export default function HomeHeroRange({
 
   return (
     <section
-      className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/30 shadow-sm overflow-hidden"
+      className="rounded-3xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/90 dark:bg-zinc-900/60 backdrop-blur-xl shadow-lg overflow-hidden"
       aria-labelledby="home-hero-heading"
     >
       <div className="sr-only">
@@ -114,7 +114,7 @@ export default function HomeHeroRange({
             <div className="text-xs font-bold tracking-wider uppercase text-zinc-400">
               Random Number Generator
             </div>
-            <div className="mt-1 text-2xl sm:text-3xl font-black tracking-tight">
+            <div className="mt-1 text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-700 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">
               {displayRange.min}–{displayRange.max}
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function HomeHeroRange({
               type="button"
               onClick={handleShare}
               aria-label="Share this generator"
-              className="h-10 w-10 inline-flex items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+              className="h-10 w-10 inline-flex items-center justify-center rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 text-zinc-500 dark:text-zinc-400 hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:text-violet-600 dark:hover:text-violet-400 hover:border-violet-300 dark:hover:border-violet-700/50 transition-all duration-200"
             >
               <Share2 size={18} aria-hidden="true" />
             </button>
@@ -131,7 +131,7 @@ export default function HomeHeroRange({
               type="button"
               onClick={handleCopy}
               aria-label="Copy result and link"
-              className="h-10 w-10 inline-flex items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+              className="h-10 w-10 inline-flex items-center justify-center rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 text-zinc-500 dark:text-zinc-400 hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:text-violet-600 dark:hover:text-violet-400 hover:border-violet-300 dark:hover:border-violet-700/50 transition-all duration-200"
             >
               <Copy size={18} aria-hidden="true" />
             </button>
@@ -141,7 +141,7 @@ export default function HomeHeroRange({
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-6 items-stretch">
           <div
             className={[
-              "sm:col-span-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black",
+              "sm:col-span-2 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/80",
               "min-h-[140px] flex items-center justify-start px-6",
               animating ? "scale-[0.995]" : "scale-100",
               "transition-transform duration-150",
@@ -157,7 +157,7 @@ export default function HomeHeroRange({
             </span>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black p-4 space-y-4">
+          <div className="rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/80 p-4 space-y-4">
             <label htmlFor={minInputId} className="block">
               <span
                 id={`${minInputId}-label`}
@@ -171,7 +171,7 @@ export default function HomeHeroRange({
                 value={min}
                 onChange={(e) => setMin(Number(e.target.value))}
                 aria-describedby={`${minInputId}-description`}
-                className="w-full bg-transparent text-2xl font-black text-zinc-900 dark:text-white outline-none font-mono"
+                className="w-full bg-transparent text-2xl font-black text-zinc-900 dark:text-white outline-none font-mono placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
               />
               <span id={`${minInputId}-description`} className="sr-only">
                 Minimum value for the random number range
@@ -190,7 +190,7 @@ export default function HomeHeroRange({
                 value={max}
                 onChange={(e) => setMax(Number(e.target.value))}
                 aria-describedby={`${maxInputId}-description`}
-                className="w-full bg-transparent text-2xl font-black text-zinc-900 dark:text-white outline-none font-mono"
+                className="w-full bg-transparent text-2xl font-black text-zinc-900 dark:text-white outline-none font-mono placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
               />
               <span id={`${maxInputId}-description`} className="sr-only">
                 Maximum value for the random number range
@@ -202,7 +202,7 @@ export default function HomeHeroRange({
         {toast && (
           <div
             id={statusId}
-            className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-xs font-bold bg-black text-white dark:bg-white dark:text-black shadow"
+            className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-bold bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200"
             role="status"
             aria-live="polite"
           >
@@ -215,7 +215,7 @@ export default function HomeHeroRange({
         type="button"
         onClick={handleGenerate}
         aria-describedby={`${resultId} ${statusId}`}
-        className="w-full h-14 bg-black text-white dark:bg-white dark:text-black font-black tracking-wide flex items-center justify-center gap-2"
+        className="w-full h-14 bg-gradient-to-r from-zinc-900 to-zinc-800 hover:from-zinc-800 hover:to-zinc-700 dark:from-zinc-100 dark:to-zinc-200 dark:hover:from-white dark:hover:to-zinc-100 text-white dark:text-zinc-900 font-black tracking-wide flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg active:scale-[0.98]"
       >
         <span className="sr-only">
           Generate random number between {displayRange.min} and{" "}

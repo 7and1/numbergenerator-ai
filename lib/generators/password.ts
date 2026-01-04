@@ -28,16 +28,23 @@ export function generateDigit(params: GeneratorParams): { values: string[] } {
   setCurrentMode("digit");
   const { length = 4, pad_zero = true } = params;
   const safeLen = Math.max(1, Math.min(18, Math.floor(length)));
-  const maxVal = 10 ** safeLen - 1;
-  const num = randomIntInclusive(0, maxVal);
+
+  // Avoid generating a single huge integer (would exceed JS safe integer range at ~16+ digits).
+  // Generate digits directly to preserve exact length and uniform per-digit distribution.
+  const digits = Array.from({ length: safeLen }, () =>
+    String(randomIntInclusive(0, 9)),
+  ).join("");
+
+  const num = pad_zero ? digits : digits.replace(/^0+/, "") || "0";
   return {
-    values: [pad_zero ? String(num).padStart(safeLen, "0") : String(num)],
+    values: [num],
   };
 }
 
 export function generatePassword(params: GeneratorParams): {
   values: string[];
   meta: Record<string, unknown>;
+  warnings: string[];
 } {
   setCurrentMode("password");
   const {
@@ -54,8 +61,15 @@ export function generatePassword(params: GeneratorParams): {
     ensure_each,
     count: rawCount,
   } = params;
+  const requestedLen =
+    typeof length === "number" && Number.isFinite(length)
+      ? Math.floor(length)
+      : 12;
   const safeLen = Math.max(4, Math.min(256, Math.floor(length)));
   const batch = clampInt(rawCount, 1, 200, 1);
+
+  const warningsSet = new Set<string>();
+  const warn = (msg: string) => warningsSet.add(msg);
 
   const usePro =
     typeof include_lower === "boolean" ||
@@ -101,12 +115,20 @@ export function generatePassword(params: GeneratorParams): {
     if (typeof exclude_chars === "string" && exclude_chars.length)
       pool = removeChars(pool, exclude_chars);
     if (!pool.length) {
+      warn("All characters were excluded; falling back to strong charset.");
       pool = CHARSETS.strong;
     }
 
     const ensure = Boolean(ensure_each);
     const pieces: string[] = [];
-    if (ensure) {
+
+    // If length is too short to include each selected set, warn and skip ensuring.
+    // Use requestedLen in the message (even if we clamp to a higher safeLen).
+    const ensureFeasible = safeLen >= groups.length;
+    if (ensure && requestedLen < groups.length) {
+      warn(`Length ${requestedLen} is too short to include each selected set.`);
+    }
+    if (ensure && ensureFeasible) {
       for (const g of groups) {
         let gg = g;
         if (exclude_ambiguous) gg = removeChars(gg, AMBIGUOUS_CHARS);
@@ -136,5 +158,5 @@ export function generatePassword(params: GeneratorParams): {
       batch,
     },
   };
-  return { values, meta };
+  return { values, meta, warnings: Array.from(warningsSet) };
 }

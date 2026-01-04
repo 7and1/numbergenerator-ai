@@ -52,7 +52,11 @@ if (typeof globalThis.StorageEvent === "undefined") {
     stopPropagation(): void {}
     stopImmediatePropagation(): void {}
     preventDefault(): void {}
-    initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void {}
+    initEvent(_type: string, _bubbles?: boolean, _cancelable?: boolean): void {
+      void _type;
+      void _bubbles;
+      void _cancelable;
+    }
     composedPath(): EventTarget[] {
       return [];
     }
@@ -609,7 +613,7 @@ describe("lib/userData", () => {
       const result = addRecent({
         key: "/special/",
         href: "/special",
-        title: "Test with \"quotes\" and 'apostrophes'",
+        title: 'Test with "quotes" and apostrophes',
       });
 
       expect(result[0]!.title).toContain("quotes");

@@ -62,6 +62,17 @@ export function trackToolUsage(toolSlug: string, toolTitle: string): void {
     data[toolSlug]!.lastUsed = Date.now();
     data[toolSlug]!.title = toolTitle;
 
+    // Cap entries to prevent unbounded localStorage growth.
+    const slugs = Object.keys(data);
+    if (slugs.length > MAX_USAGE_ENTRIES) {
+      slugs
+        .sort((a, b) => (data[a]?.lastUsed ?? 0) - (data[b]?.lastUsed ?? 0))
+        .slice(0, Math.max(0, slugs.length - MAX_USAGE_ENTRIES))
+        .forEach((slug) => {
+          delete data[slug];
+        });
+    }
+
     window.localStorage.setItem(USAGE_KEY, JSON.stringify(data));
   } catch {
     // Ignore quota errors

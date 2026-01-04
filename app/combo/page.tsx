@@ -5,20 +5,28 @@ import ComboPageContent from "./ComboGeneratorClient";
 
 export const dynamic = "force-static";
 
+const BASE_URL = "https://numbergenerator.ai";
+
 export const metadata: Metadata = {
   title: "Combination Generator - Run Multiple Tools at Once",
   description:
     "Run multiple random generators simultaneously. Generate numbers, passwords, dice rolls, and more with a single click. Export results as CSV or JSON.",
+  alternates: {
+    canonical: `${BASE_URL}/combo/`,
+  },
   openGraph: {
     title: "Combination Generator - Run Multiple Tools at Once",
     description:
       "Run multiple random generators simultaneously. Generate numbers, passwords, dice rolls, and more with a single click.",
     type: "website",
-    url: "https://numbergenerator.ai/combo/",
+    url: `${BASE_URL}/combo/`,
     siteName: "NumberGenerator.ai",
   },
-  alternates: {
-    canonical: "https://numbergenerator.ai/combo/",
+  twitter: {
+    card: "summary_large_image",
+    title: "Combination Generator - Run Multiple Tools at Once",
+    description:
+      "Run multiple random generators simultaneously. Generate numbers, passwords, dice rolls, and more with a single click.",
   },
 };
 

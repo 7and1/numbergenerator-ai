@@ -84,6 +84,11 @@ export function generate(
   mode: GeneratorMode,
   params: GeneratorParams,
 ): GenerationResult {
+  const safeParams: GeneratorParams =
+    params && typeof params === "object"
+      ? (params as GeneratorParams)
+      : ({} as GeneratorParams);
+
   let values: (string | number)[] = [];
   let bonus_values: (string | number)[] = [];
   const warnings: string[] = [];
@@ -91,34 +96,35 @@ export function generate(
 
   switch (mode) {
     case "range": {
-      const result = generateRange(params);
+      const result = generateRange(safeParams);
       values = result.values;
       warnings.push(...result.warnings);
       break;
     }
 
     case "digit": {
-      const result = generateDigit(params);
+      const result = generateDigit(safeParams);
       values = result.values;
       break;
     }
 
     case "password": {
-      const result = generatePassword(params);
+      const result = generatePassword(safeParams);
       values = result.values;
       meta = result.meta;
+      if (result.warnings.length) warnings.push(...result.warnings);
       break;
     }
 
     case "lottery": {
-      const result = generateLottery(params);
+      const result = generateLottery(safeParams);
       values = result.values;
       bonus_values = result.bonus_values;
       break;
     }
 
     case "list": {
-      const result = generateList(params);
+      const result = generateList(safeParams);
       values = result.values;
       meta = result.meta;
       warnings.push(...result.warnings);
@@ -126,14 +132,14 @@ export function generate(
     }
 
     case "shuffle": {
-      const result = generateShuffle(params);
+      const result = generateShuffle(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "dice": {
-      const result = generateDice(params);
+      const result = generateDice(safeParams);
       values = result.values;
       bonus_values = result.bonus_values;
       meta = result.meta;
@@ -141,14 +147,14 @@ export function generate(
     }
 
     case "coin": {
-      const result = generateCoin(params);
+      const result = generateCoin(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "ticket": {
-      const result = generateTicket(params);
+      const result = generateTicket(safeParams);
       values = result.values;
       meta = result.meta;
       warnings.push(...result.warnings);
@@ -156,153 +162,153 @@ export function generate(
     }
 
     case "uuid": {
-      const result = generateUUID(params);
+      const result = generateUUID(safeParams);
       values = result.values;
       break;
     }
 
     case "color": {
-      const result = generateColor(params);
+      const result = generateColor(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "hex": {
-      const result = generateHex(params);
+      const result = generateHex(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "timestamp": {
-      const result = generateTimestamp(params);
+      const result = generateTimestamp(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "coordinates": {
-      const result = generateCoordinates(params);
+      const result = generateCoordinates(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "ipv4": {
-      const result = generateIPv4(params);
+      const result = generateIPv4(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "mac": {
-      const result = generateMAC(params);
+      const result = generateMAC(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "fraction": {
-      const result = generateFraction(params);
+      const result = generateFraction(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "percentage": {
-      const result = generatePercentage(params);
+      const result = generatePercentage(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "date": {
-      const result = generateDate(params);
+      const result = generateDate(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "bytes": {
-      const result = generateBytes(params);
+      const result = generateBytes(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "words": {
-      const result = generateWords(params);
+      const result = generateWords(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "alphabet": {
-      const result = generateAlphabet(params);
+      const result = generateAlphabet(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "prime": {
-      const result = generatePrime(params);
+      const result = generatePrime(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "roman": {
-      const result = generateRoman(params);
+      const result = generateRoman(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "unicode": {
-      const result = generateUnicode(params);
+      const result = generateUnicode(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "ascii": {
-      const result = generateASCII(params);
+      const result = generateASCII(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "temperature": {
-      const result = generateTemperature(params);
+      const result = generateTemperature(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "currency": {
-      const result = generateCurrency(params);
+      const result = generateCurrency(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "phone": {
-      const result = generatePhone(params);
+      const result = generatePhone(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "email": {
-      const result = generateEmail(params);
+      const result = generateEmail(safeParams);
       values = result.values;
       meta = result.meta;
       break;
     }
 
     case "username": {
-      const result = generateUsername(params);
+      const result = generateUsername(safeParams);
       values = result.values;
       meta = result.meta;
       break;
@@ -320,13 +326,13 @@ export function generate(
   else if (mode === "shuffle")
     formatted = formatGroupedLines(
       values,
-      clampInt(params.group_size, 0, 10_000, 0),
+      clampInt(safeParams.group_size, 0, 10_000, 0),
     );
   else if (mode === "ticket") formatted = values.join("\n");
   else if (mode === "list" && values.length > 1)
     formatted = formatGroupedLines(
       values,
-      clampInt(params.group_size, 0, 10_000, 0),
+      clampInt(safeParams.group_size, 0, 10_000, 0),
     );
   else formatted = values.join(", ");
 

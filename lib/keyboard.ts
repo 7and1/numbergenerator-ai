@@ -14,7 +14,7 @@ export type KeyboardShortcut = {
 
 type ShortcutMap = Map<string, KeyboardShortcut>;
 
-let shortcuts: ShortcutMap = new Map();
+const shortcuts: ShortcutMap = new Map();
 let isEnabled = true;
 
 /**

@@ -33,44 +33,21 @@ const getResultClass = (
   type: ToolConfig["ui"]["result_type"],
   isBonus: boolean,
 ) => {
-  const base = "font-bold transition-all cursor-default select-all";
+  const base =
+    "font-bold transition-all duration-200 cursor-default select-all";
   const color = isBonus
-    ? "bg-red-500 text-white"
-    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white";
+    ? "bg-rose-500 text-white shadow-rose-500/25"
+    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700";
 
   switch (type) {
     case "bubble":
-      return `${base} ${color} w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full text-2xl shadow-sm`;
+      return `${base} ${color} w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full text-2xl shadow-md`;
     case "card":
-      return `${base} ${color} px-4 py-3 md:px-6 md:py-4 rounded-xl text-4xl md:text-5xl border-2 border-zinc-200 dark:border-zinc-700 font-mono tracking-widest`;
+      return `${base} ${color} px-4 py-3 md:px-6 md:py-4 rounded-xl text-4xl md:text-5xl font-mono tracking-widest shadow-sm`;
     case "text":
     default:
       return `${base} text-4xl md:text-6xl tracking-tight break-all text-center`;
   }
-};
-
-// Extract IIFE functions to standalone helpers for better performance
-const getStreakLength = (meta: Record<string, unknown>): string => {
-  const streak = asRecord(meta.longestStreak);
-  const len = getNumber(streak, "length");
-  return len === null ? "—" : String(len);
-};
-
-const getStreakSide = (meta: Record<string, unknown>): string => {
-  const streak = asRecord(meta.longestStreak);
-  const side = streak && typeof streak.side === "string" ? streak.side : null;
-  return side ?? "";
-};
-
-const getPasswordBatch = (meta: Record<string, unknown>): string => {
-  const pw = asRecord(meta.password);
-  const batch = getNumber(pw, "batch");
-  return batch === null ? "—" : String(batch);
-};
-
-const hasPasswordBatch = (meta: Record<string, unknown>): boolean => {
-  const pw = asRecord(meta.password);
-  return getNumber(pw, "batch") !== null;
 };
 
 const Display = memo(function Display({
@@ -120,7 +97,6 @@ const Display = memo(function Display({
     (config.ui.result_type === "bubble" || config.ui.result_type === "card") &&
     (result?.values?.length ?? 0) <= 40;
   const meta = asRecord(result?.meta);
-  const resultId = `generated-result-${config.slug}`;
   const resultLabel = result
     ? `Generated ${result.values.length} ${result.values.length === 1 ? "value" : "values"}`
     : "No result generated yet";
@@ -235,7 +211,7 @@ const Display = memo(function Display({
           aria-label="Generation statistics"
         >
           {config.mode === "dice" && getNumber(meta, "total") !== null && (
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+            <div className="rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-sm p-3 shadow-sm">
               <div className="text-zinc-400 font-bold uppercase">Total</div>
               <div className="mt-1 text-lg font-black tabular-nums">
                 {String(getNumber(meta, "total"))}
@@ -246,19 +222,19 @@ const Display = memo(function Display({
             getNumber(meta, "heads") !== null &&
             getNumber(meta, "tails") !== null && (
               <>
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+                <div className="rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-sm p-3 shadow-sm">
                   <div className="text-zinc-400 font-bold uppercase">Heads</div>
                   <div className="mt-1 text-lg font-black tabular-nums">
                     {String(getNumber(meta, "heads"))}
                   </div>
                 </div>
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+                <div className="rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-sm p-3 shadow-sm">
                   <div className="text-zinc-400 font-bold uppercase">Tails</div>
                   <div className="mt-1 text-lg font-black tabular-nums">
                     {String(getNumber(meta, "tails"))}
                   </div>
                 </div>
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+                <div className="rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-sm p-3 shadow-sm">
                   <div className="text-zinc-400 font-bold uppercase">
                     Longest Streak
                   </div>
@@ -284,7 +260,7 @@ const Display = memo(function Display({
             )}
           {config.mode === "ticket" &&
             getNumber(meta, "remainingCount") !== null && (
-              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+              <div className="rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-sm p-3 shadow-sm">
                 <div className="text-zinc-400 font-bold uppercase">
                   Remaining
                 </div>
@@ -299,7 +275,7 @@ const Display = memo(function Display({
               const batch = getNumber(pw, "batch");
               return batch !== null;
             })() && (
-              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+              <div className="rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-sm p-3 shadow-sm">
                 <div className="text-zinc-400 font-bold uppercase">Batch</div>
                 <div className="mt-1 text-lg font-black tabular-nums">
                   {(() => {
@@ -311,7 +287,7 @@ const Display = memo(function Display({
               </div>
             )}
           {config.mode === "password" && passwordStrength && (
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+            <div className="rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-sm p-3 shadow-sm">
               <div className="text-zinc-400 font-bold uppercase">Strength</div>
               <div className="mt-1 flex items-center gap-2">
                 <div className="flex-1 h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
@@ -340,7 +316,7 @@ const Display = memo(function Display({
               const format = meta.format as string | undefined;
               return (
                 format && (
-                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+                  <div className="rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-sm p-3 shadow-sm">
                     <div className="text-zinc-400 font-bold uppercase">
                       Format
                     </div>
@@ -352,7 +328,7 @@ const Display = memo(function Display({
               );
             })()}
           {config.mode === "hex" && getNumber(meta, "bytes") !== null && (
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-black/30 p-3">
+            <div className="rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/60 backdrop-blur-sm p-3 shadow-sm">
               <div className="text-zinc-400 font-bold uppercase">Bytes</div>
               <div className="mt-1 text-lg font-black tabular-nums">
                 {String(getNumber(meta, "bytes"))}

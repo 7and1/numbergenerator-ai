@@ -44,3 +44,8 @@ next-env.d.ts
 # cloudflare
 wrangler.toml
 .wrangler
+
+# sensitive files
+CLAUDE.md
+.claude/
+.dev.vars

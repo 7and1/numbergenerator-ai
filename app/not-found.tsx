@@ -9,7 +9,7 @@ export default function NotFound() {
       <div className="max-w-xl mx-auto text-center space-y-4">
         <h1 className="text-4xl font-black tracking-tight">Page not found</h1>
         <p className="text-zinc-500 dark:text-zinc-400">
-          This tool doesn't exist (or the URL is wrong).
+          This tool doesn&apos;t exist (or the URL is wrong).
         </p>
         <Link
           href="/"

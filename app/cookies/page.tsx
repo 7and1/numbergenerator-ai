@@ -1,13 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Cookie, Eye, Trash2 } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui";
 import { PAGE_BREADCRUMBS } from "@/lib/breadcrumbs";
+
+const BASE_URL = "https://numbergenerator.ai";
 
 export const metadata: Metadata = {
   title: "Cookie Policy",
   description:
     "Learn how NumberGenerator.ai uses cookies and local storage. We use minimal, essential storage only - no tracking cookies.",
+  alternates: {
+    canonical: `${BASE_URL}/cookies/`,
+  },
+  openGraph: {
+    title: "Cookie Policy - NumberGenerator.ai",
+    description:
+      "Learn how NumberGenerator.ai uses cookies and local storage. Minimal, essential storage only.",
+    url: `${BASE_URL}/cookies/`,
+    siteName: "NumberGenerator.ai",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Cookie Policy - NumberGenerator.ai",
+    description:
+      "Learn how NumberGenerator.ai uses cookies and local storage. Minimal, essential storage only.",
+  },
 };
 
 export default function CookiesPage() {

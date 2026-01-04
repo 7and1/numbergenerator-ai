@@ -24,7 +24,8 @@ export function generateList(params: GeneratorParams): {
 } {
   setCurrentMode("list");
 
-  const { items = [], weights, count: rawCount, unique: rawUnique } = params;
+  const { items = [], weights, unique: rawUnique } = params;
+  const rawCount = params.pick ?? params.count;
   const { items: cleaned, weights: cleanedWeights } = normalizedItemsAndWeights(
     items,
     weights,
@@ -104,7 +105,7 @@ export function generateShuffle(params: GeneratorParams): {
 
   const shuffled = shuffleInPlace([...cleaned]);
   const values = shuffled;
-  const groupSize = clampInt(rawGroupSize, 0, 1000, 0);
+  const groupSize = clampInt(rawGroupSize, 0, 10_000, 0);
   const meta = { groupSize: groupSize > 0 ? groupSize : null };
 
   return { values, meta };

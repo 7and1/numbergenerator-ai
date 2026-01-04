@@ -20,7 +20,7 @@ import { Controls } from "@/components/generator/Controls";
 import { Display } from "@/components/generator/Display";
 import { Toast } from "@/components/ui/Toast";
 import { WarningAlert } from "@/components/ui/WarningAlert";
-import { addRecent, toggleFavorite } from "@/lib/userData";
+import { addRecent } from "@/lib/userData";
 import {
   validateGeneratorParams,
   validateHistoryArray,
@@ -32,11 +32,9 @@ import {
   trackToolGenerate,
   trackToolCopy,
   trackToolExport,
-  trackToolShare,
 } from "@/lib/analytics";
 import { trackToolUsage } from "@/lib/usageTracker";
 import { EmbedCode } from "@/components/tool/EmbedCode";
-import { ShortcutHint } from "@/components/ui/KeyboardShortcuts";
 import { TicketLogViewer } from "@/components/generator/TicketLogViewer";
 
 // Utility function for conditional className
@@ -52,14 +50,11 @@ const isTypingElement = (el: Element | null) => {
 
 const TOOL_STATE_PREFIX = "ng:toolState:v1:";
 
-const safeParseJson = <T,>(raw: string | null): T | null => {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-};
+const EMPTY_TICKET_LOG: Array<{
+  timestamp: number;
+  values: (string | number)[];
+}> = [];
+const EMPTY_STRING_ARRAY: string[] = [];
 
 const parseBool = (v: string | null) =>
   v === "1" || v === "true" ? true : v === "0" || v === "false" ? false : null;
@@ -478,7 +473,7 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
   const params = state.params;
   const result = state.result;
   const history = state.history;
-  const ticketLog = state.ticketLog ?? [];
+  const ticketLog = state.ticketLog ?? EMPTY_TICKET_LOG;
 
   const [animating, setAnimating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -530,6 +525,19 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
     trackToolUsage(config.slug, config.title);
   }, [config.mode, config.slug, config.title, config.description, store]);
 
+  // Memoize copyToClipboard
+  const copyToClipboard = useCallback(async () => {
+    if (!result?.formatted) return;
+    try {
+      await navigator.clipboard.writeText(result.formatted);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 800);
+      trackToolCopy(config.slug);
+    } catch {
+      // ignore (some browsers block clipboard without gesture / permissions)
+    }
+  }, [result?.formatted, config.slug]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (isTypingElement(document.activeElement)) return;
@@ -548,7 +556,7 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleGenerate, result?.formatted]);
+  }, [handleGenerate, copyToClipboard, result?.formatted]);
 
   // Memoize patchParams to avoid creating new function on each render
   const patchParams = useCallback(
@@ -557,19 +565,6 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
     },
     [store],
   );
-
-  // Memoize copyToClipboard
-  const copyToClipboard = useCallback(async () => {
-    if (!result?.formatted) return;
-    try {
-      await navigator.clipboard.writeText(result.formatted);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 800);
-      trackToolCopy(config.slug);
-    } catch {
-      // ignore (some browsers block clipboard without gesture / permissions)
-    }
-  }, [result?.formatted, config.slug]);
 
   // Memoize export handlers
   const exportAs = useCallback(
@@ -671,7 +666,7 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
     params.count,
   ]);
 
-  const runWarnings = result?.warnings ?? [];
+  const runWarnings = result?.warnings ?? EMPTY_STRING_ARRAY;
   const warnings = useMemo(
     () => [...preWarnings, ...runWarnings],
     [preWarnings, runWarnings],
@@ -681,15 +676,20 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
   const displayClassName = useMemo(
     () =>
       cn(
-        "relative bg-white dark:bg-zinc-900 rounded-3xl p-10 min-h-[240px] shadow-xl border border-zinc-100 dark:border-zinc-800",
-        "flex flex-col items-center justify-center transition-transform duration-150",
-        animating ? "scale-[0.98]" : "scale-100",
+        "relative bg-white/90 dark:bg-zinc-900/70 backdrop-blur-xl rounded-[2.5rem] p-8 sm:p-14 min-h-[320px]",
+        "shadow-[0_20px_60px_-12px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.5)]",
+        "border border-zinc-200/60 dark:border-zinc-800/60",
+        "flex flex-col items-center justify-center transition-all duration-200 ease-out will-change-transform",
+        "ring-1 ring-zinc-900/5 dark:ring-white/5",
+        animating
+          ? "scale-[0.98] opacity-80 blur-[2px] grayscale-[0.2]"
+          : "scale-100 opacity-100 blur-0 grayscale-0",
       ),
     [animating],
   );
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6">
+    <div className="w-full max-w-3xl mx-auto space-y-10">
       {toast && (
         <Toast
           message={toast.message}
@@ -713,16 +713,24 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
             type="button"
             onClick={copyToClipboard}
             aria-label="Copy result to clipboard"
-            className="absolute top-4 right-4 flex items-center gap-2 p-2 text-zinc-300 hover:text-zinc-600 dark:hover:text-white transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="absolute top-5 right-5 sm:top-8 sm:right-8 flex items-center gap-2 p-3 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all rounded-2xl hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 group backdrop-blur-sm"
           >
-            <Copy size={20} aria-hidden="true" />
-            {copied && <span className="text-xs font-semibold">Copied</span>}
+            <Copy
+              size={20}
+              className="group-hover:scale-110 transition-transform"
+              aria-hidden="true"
+            />
+            {copied && (
+              <span className="text-xs font-bold text-green-500 animate-in fade-in slide-in-from-left-2 duration-300">
+                Copied
+              </span>
+            )}
           </button>
         )}
       </div>
 
       {warnings.length > 0 && (
-        <div role="alert" aria-live="polite" className="space-y-2">
+        <div role="alert" aria-live="polite" className="space-y-3 px-2">
           {warnings.map((w, i) => (
             <WarningAlert key={i} variant="caution">
               {w}
@@ -731,21 +739,35 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
         </div>
       )}
 
-      <Controls config={mergedConfig} params={params} onChange={patchParams} />
+      <div className="bg-white/90 dark:bg-zinc-900/60 backdrop-blur-md rounded-[2rem] p-6 sm:p-10 border border-zinc-200/60 dark:border-zinc-800/60 shadow-lg">
+        <Controls
+          config={mergedConfig}
+          params={params}
+          onChange={patchParams}
+        />
+      </div>
 
       <button
         type="button"
         onClick={handleGenerate}
-        className="w-full h-16 bg-black dark:bg-white text-white dark:text-black rounded-2xl text-xl font-bold tracking-wide shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2"
+        className="group relative w-full h-20 sm:h-24 bg-gradient-to-br from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 dark:from-violet-500 dark:to-indigo-500 dark:hover:from-violet-400 dark:hover:to-indigo-400 text-white rounded-[2rem] text-2xl sm:text-3xl font-black tracking-tight shadow-[0_20px_40px_-12px_rgba(139,92,246,0.35)] dark:shadow-[0_20px_40px_-12px_rgba(139,92,246,0.25)] hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.45)] dark:hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.35)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-200 ease-out flex items-center justify-center gap-4 focus-visible:ring-4 focus-visible:ring-violet-500/50 overflow-hidden shine-effect"
       >
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
         {animating && (
-          <RefreshCw className="animate-spin" size={24} aria-hidden="true" />
+          <RefreshCw
+            className="animate-spin relative z-10"
+            size={32}
+            aria-hidden="true"
+          />
         )}
         {!animating && (
           <>
-            {mergedConfig.ui.button_text}
-            <span className="text-xs font-normal opacity-60 ml-2 hidden sm:inline">
-              <ShortcutHint keys={["Space", "Enter"]} />
+            <span className="relative z-10 drop-shadow-sm">
+              {mergedConfig.ui.button_text}
+            </span>
+            <span className="hidden sm:inline-flex items-center justify-center h-8 px-3 rounded-lg bg-white/20 dark:bg-black/10 text-xs font-bold uppercase tracking-wider opacity-60 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
+              Space
             </span>
           </>
         )}
@@ -755,50 +777,33 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
         <div
           role="group"
           aria-label="Export options"
-          className="flex flex-wrap gap-2 justify-center"
+          className="flex flex-wrap gap-3 justify-center py-4"
         >
-          <button
-            type="button"
-            onClick={() => exportAs("txt")}
-            className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 font-bold text-sm inline-flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400/50"
-          >
-            <Download size={16} aria-hidden="true" /> TXT
-          </button>
-          <button
-            type="button"
-            onClick={() => exportAs("csv")}
-            className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 font-bold text-sm inline-flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400/50"
-          >
-            <Download size={16} aria-hidden="true" /> CSV
-          </button>
-          <button
-            type="button"
-            onClick={() => exportAs("json")}
-            className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 font-bold text-sm inline-flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400/50"
-          >
-            <Download size={16} aria-hidden="true" /> JSON
-          </button>
+          {(["txt", "csv", "json"] as const).map((fmt) => (
+            <button
+              key={fmt}
+              type="button"
+              onClick={() => exportAs(fmt)}
+              className="h-12 px-6 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/90 dark:bg-zinc-900/60 backdrop-blur-sm font-bold text-sm uppercase tracking-wide text-zinc-600 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 hover:border-violet-300 dark:hover:border-violet-700/50 hover:bg-violet-50/80 dark:hover:bg-violet-950/20 hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex items-center gap-2.5 shadow-sm hover:shadow-md"
+            >
+              <Download size={16} aria-hidden="true" /> {fmt}
+            </button>
+          ))}
 
           {config.mode === "ticket" && ticketLog.length > 0 && (
             <>
+              <div className="w-px h-10 bg-zinc-200/60 dark:bg-zinc-800/60 mx-2 hidden sm:block" />
               <button
                 type="button"
                 onClick={() => exportTicketLog("csv")}
-                className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 font-bold text-sm inline-flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400/50"
+                className="h-12 px-6 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/90 dark:bg-zinc-900/60 backdrop-blur-sm font-bold text-sm uppercase tracking-wide text-zinc-600 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 hover:border-violet-300 dark:hover:border-violet-700/50 hover:bg-violet-50/80 dark:hover:bg-violet-950/20 hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex items-center gap-2.5 shadow-sm hover:shadow-md"
               >
                 <Download size={16} aria-hidden="true" /> Log CSV
               </button>
               <button
                 type="button"
-                onClick={() => exportTicketLog("json")}
-                className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 font-bold text-sm inline-flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400/50"
-              >
-                <Download size={16} aria-hidden="true" /> Log JSON
-              </button>
-              <button
-                type="button"
                 onClick={clearTicketLog}
-                className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 font-bold text-sm inline-flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400/50"
+                className="h-12 px-6 rounded-2xl border border-rose-200/60 dark:border-rose-900/30 bg-rose-50/80 dark:bg-rose-950/20 backdrop-blur-sm font-bold text-sm uppercase tracking-wide text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 hover:border-rose-300 dark:hover:border-rose-800/50 hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex items-center gap-2.5 shadow-sm hover:shadow-md hover:shadow-rose-500/10"
               >
                 Clear Log
               </button>
@@ -820,19 +825,19 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
       )}
 
       {history.length > 0 && (
-        <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
-          <h2 className="flex items-center gap-2 text-xs text-zinc-400 font-bold uppercase tracking-wider mb-3">
-            <History size={14} aria-hidden="true" /> Recent
+        <div className="pt-10 border-t border-zinc-200/60 dark:border-zinc-800/60">
+          <h2 className="flex items-center gap-3 text-xs font-black text-zinc-400 uppercase tracking-widest mb-6 px-2">
+            <History size={14} aria-hidden="true" /> Recent History
           </h2>
           <ul
-            className="flex flex-wrap gap-2"
+            className="flex flex-wrap gap-3"
             role="list"
             aria-label="Recent results"
           >
             {history.map((h, i) => (
               <li
                 key={`${result?.timestamp ?? "h"}-${i}`}
-                className="px-3 py-1 bg-zinc-50 dark:bg-zinc-800 rounded-md text-sm text-zinc-600 dark:text-zinc-400 font-mono border border-zinc-200 dark:border-zinc-700"
+                className="px-4 py-2 bg-zinc-50/80 dark:bg-zinc-900/40 rounded-xl text-sm text-zinc-600 dark:text-zinc-400 font-mono border border-zinc-200/60 dark:border-zinc-800/60 select-all hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all cursor-default"
               >
                 {h}
               </li>
@@ -843,20 +848,36 @@ export default function UniversalGenerator({ config }: { config: ToolConfig }) {
 
       {/* Embed & Share Section */}
       <details className="group">
-        <summary className="flex items-center justify-between cursor-pointer list-none px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400/50 focus-visible:ring-offset-2">
-          <span className="flex items-center gap-2 text-sm font-bold text-zinc-700 dark:text-zinc-300">
-            <Code size={16} aria-hidden="true" />
-            Embed & Share
+        <summary className="flex items-center justify-between cursor-pointer list-none px-6 py-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/20 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-all shadow-sm">
+          <span className="flex items-center gap-3 text-sm font-bold text-zinc-600 dark:text-zinc-300">
+            <Code size={18} aria-hidden="true" className="text-zinc-400" />
+            Embed & Developers
           </span>
           <span
-            className="text-xs text-zinc-500 group-open:rotate-180 transition-transform"
+            className="text-zinc-400 group-open:rotate-180 transition-transform duration-300 p-1 rounded-lg bg-zinc-100 dark:bg-zinc-800"
             aria-hidden="true"
           >
-            ▼
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </span>
-          <span className="sr-only">Toggle embed code section</span>
         </summary>
-        <div className="mt-4" role="region" aria-label="Embed code options">
+        <div
+          className="mt-4 p-1 animate-in slide-in-from-top-2 duration-300"
+          role="region"
+          aria-label="Embed code options"
+        >
           <EmbedCode
             toolSlug={config.slug}
             toolTitle={config.title}

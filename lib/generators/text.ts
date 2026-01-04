@@ -4,7 +4,7 @@
  */
 
 import type { GeneratorParams } from "../types";
-import { clampInt, safeFiniteNumber } from "../core/arrays";
+import { clampInt } from "../core/arrays";
 import { randomIntInclusive, setCurrentMode } from "../core/samplers";
 
 const WORD_LISTS = {
@@ -308,7 +308,8 @@ export function generateWords(params: GeneratorParams): {
   meta: Record<string, unknown>;
 } {
   setCurrentMode("words");
-  const wordCount = clampInt(params.word_count, 1, 1000, 10);
+  const resultsCount = clampInt(params.count, 1, 10_000, 1);
+  const wordsPerResult = clampInt(params.word_count, 1, 1000, 10);
   const wordType = params.word_type ?? "all";
 
   const wordList =
@@ -320,12 +321,16 @@ export function generateWords(params: GeneratorParams): {
           ? WORD_LISTS.adjectives
           : ALL_WORDS;
 
-  const values = Array.from({ length: wordCount }, () => {
-    const idx = randomIntInclusive(0, wordList.length - 1);
-    return wordList[idx]!;
+  const values = Array.from({ length: resultsCount }, () => {
+    const words = Array.from({ length: wordsPerResult }, () => {
+      const idx = randomIntInclusive(0, wordList.length - 1);
+      return wordList[idx]!;
+    });
+    return words.join(" ");
   });
   const meta = {
-    count: wordCount,
+    count: resultsCount,
+    wordsPerResult,
     type: wordType,
     totalWords: wordList.length,
   };

@@ -1,24 +1,12 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Trash2, Copy, Download, RefreshCw } from "lucide-react";
 
 import { CONFIG_MAP } from "@/lib/configMap";
 import { generate } from "@/lib/engine";
-import type {
-  GenerationResult,
-  ToolConfig,
-  GeneratorParams,
-} from "@/lib/types";
+import type { GenerationResult, GeneratorParams } from "@/lib/types";
 import { Controls } from "@/components/generator/Controls";
-import { Display } from "@/components/generator/Display";
 import { Toast } from "@/components/ui/Toast";
 import { trackComboGenerate } from "@/lib/analytics";
 

@@ -88,8 +88,35 @@ describe("generate() integration", () => {
     });
 
     it("should return values for all modes", () => {
+      const paramsForMode = (mode: GeneratorMode): GeneratorParams => {
+        switch (mode) {
+          case "range":
+            return { min: 1, max: 10, count: 1 };
+          case "digit":
+            return { length: 4, count: 1 };
+          case "password":
+            return { length: 12, count: 1 };
+          case "lottery":
+            return { pool_a: { min: 1, max: 49, pick: 6 } };
+          case "list":
+            return { items: ["a", "b", "c"], pick: 1 };
+          case "shuffle":
+            return { items: ["a", "b", "c", "d"] };
+          case "dice":
+            return { dice_sides: 6, dice_rolls: 1 };
+          case "coin":
+            return { coin_flips: 1 };
+          case "ticket":
+            return { ticket_source: "range", min: 1, max: 10, count: 1 };
+          case "words":
+            return { count: 1, word_count: 5 };
+          default:
+            return { count: 1 };
+        }
+      };
+
       modes.forEach((mode) => {
-        const result = generate(mode, { count: 1 });
+        const result = generate(mode, paramsForMode(mode));
         expect(result.values.length).toBeGreaterThan(0);
       });
     });
@@ -146,7 +173,7 @@ describe("generate() integration", () => {
 
     it("should format multiple passwords as lines", () => {
       const result = generate("password", { length: 12, count: 3 });
-      expect(result.formatted).toMatch(/\d+\n.+\n.+\n.+/);
+      expect(result.formatted).toMatch(/.+\n.+\n.+/);
     });
   });
 

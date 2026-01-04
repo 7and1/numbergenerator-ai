@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   setCurrentMode,
   randomUint32,
+  randomUint53,
   randomIntInclusive,
   sampleUniqueIndices,
   weightedPickIndex,
@@ -73,6 +74,21 @@ describe("samplers", () => {
     });
   });
 
+  describe("randomUint53", () => {
+    it("should return a number", () => {
+      const result = randomUint53();
+      expect(typeof result).toBe("number");
+    });
+
+    it("should return an integer within safe range", () => {
+      const result = randomUint53();
+      expect(Number.isInteger(result)).toBe(true);
+      expect(result).toBeGreaterThanOrEqual(0);
+      expect(result).toBeLessThan(0x20_0000_0000_0000);
+      expect(Number.isSafeInteger(result)).toBe(true);
+    });
+  });
+
   describe("randomIntInclusive", () => {
     it("should return value within range [min, max]", () => {
       for (let i = 0; i < 100; i++) {
@@ -132,6 +148,13 @@ describe("samplers", () => {
       expect(result).toBeLessThanOrEqual(1000000);
     });
 
+    it("should handle ranges larger than 2^32 without hanging", () => {
+      const max = 63_072_000_000; // ~2 years in ms
+      const result = randomIntInclusive(0, max);
+      expect(result).toBeGreaterThanOrEqual(0);
+      expect(result).toBeLessThanOrEqual(max);
+    });
+
     it("should throw error for non-finite min", () => {
       expect(() => randomIntInclusive(NaN, 10)).toThrow(
         "min/max must be finite numbers",
@@ -172,7 +195,6 @@ describe("samplers", () => {
 
       // Each value should appear approximately 20% of the time
       // Allow 5% margin of error for statistical variance
-      const expected = trials / (max - min + 1);
       counts.forEach((count) => {
         const ratio = count / trials;
         expect(ratio).toBeGreaterThan(0.15);
@@ -254,7 +276,7 @@ describe("samplers", () => {
 
     it("should handle empty weights array", () => {
       const result = weightedPickIndex([]);
-      // Empty array returns -1 (length - 1)
+      // Empty array has no valid index
       expect(result).toBe(-1);
     });
 

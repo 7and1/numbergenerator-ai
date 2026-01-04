@@ -16,7 +16,6 @@ import {
   validateGenerationResult,
   safeParseAndValidate,
 } from "../../../validators";
-import type { GeneratorParams } from "../../../types";
 
 describe("validators", () => {
   describe("isPlainObject", () => {

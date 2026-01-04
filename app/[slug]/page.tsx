@@ -134,15 +134,32 @@ export default async function ToolPage({
         }
       : null;
 
-  // Combine all schemas
-  const jsonLd = [webApplicationSchema, faqSchema, howToSchema].filter(Boolean);
-
   // Generate breadcrumb items
   const breadcrumbs = getToolBreadcrumbs(
     config.slug,
     config.title,
     config.category,
   );
+
+  // Build BreadcrumbList schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList" as const,
+    itemListElement: breadcrumbs.map((item, index) => ({
+      "@type": "ListItem" as const,
+      position: index + 1,
+      name: item.name,
+      item: `${baseUrl}${item.href}`,
+    })),
+  };
+
+  // Combine all schemas
+  const jsonLd = [
+    webApplicationSchema,
+    faqSchema,
+    howToSchema,
+    breadcrumbSchema,
+  ].filter(Boolean);
 
   return (
     <main

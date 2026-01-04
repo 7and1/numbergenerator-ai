@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import {
   Search,
   X,
@@ -15,11 +15,9 @@ import {
   Lock,
   Ticket,
   Box,
-  Circle,
   List,
   Dice1,
   Code,
-  Globe,
   Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -130,51 +128,36 @@ const applyTheme = (theme: "light" | "dark") => {
 
 // Search modal component
 interface SearchModalProps {
-  isOpen: boolean;
   onClose: () => void;
 }
 
-function SearchModal({ isOpen, onClose }: SearchModalProps) {
+function SearchModal({ onClose }: SearchModalProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<
-    Array<{
-      slug: string;
-      title: string;
-      description: string;
-      category?: string;
-    }>
-  >([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
   useEffect(() => {
-    if (isOpen) {
-      inputRef.current?.focus();
-      setQuery("");
-      setResults([]);
-      setSelectedIndex(-1);
-    }
-  }, [isOpen]);
+    inputRef.current?.focus();
+  }, []);
 
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
+  const tools = useMemo(
+    () =>
+      Object.values(CONFIG_MAP).filter((t) => !t.slug.startsWith("template-")),
+    [],
+  );
 
-    const tools = Object.values(CONFIG_MAP).filter(
-      (t) => !t.slug.startsWith("template-"),
-    );
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
 
-    const searchLower = query.toLowerCase();
-    const filtered = tools
+    return tools
       .filter(
         (tool) =>
-          tool.title.toLowerCase().includes(searchLower) ||
-          tool.description?.toLowerCase().includes(searchLower) ||
-          tool.slug.toLowerCase().includes(searchLower) ||
-          tool.keywords?.some((k) => k.toLowerCase().includes(searchLower)),
+          tool.title.toLowerCase().includes(q) ||
+          tool.description?.toLowerCase().includes(q) ||
+          tool.slug.toLowerCase().includes(q) ||
+          tool.keywords?.some((k) => k.toLowerCase().includes(q)),
       )
       .map((tool) => ({
         slug: tool.slug,
@@ -183,15 +166,10 @@ function SearchModal({ isOpen, onClose }: SearchModalProps) {
         category: tool.category,
       }))
       .slice(0, 8);
-
-    setResults(filtered);
-    setSelectedIndex(-1);
-  }, [query]);
+  }, [query, tools]);
 
   // Keyboard navigation
   useEffect(() => {
-    if (!isOpen) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
@@ -215,13 +193,11 @@ function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, results, selectedIndex, onClose]);
-
-  if (!isOpen) return null;
+  }, [results, selectedIndex, onClose]);
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-24 px-4"
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start justify-center pt-24 px-4 animate-in fade-in duration-200"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -229,24 +205,27 @@ function SearchModal({ isOpen, onClose }: SearchModalProps) {
     >
       <div
         ref={resultsRef}
-        className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/20 dark:shadow-black/50 overflow-hidden border border-zinc-200/60 dark:border-zinc-800/60"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 p-4 border-b border-zinc-200 dark:border-zinc-800">
-          <Search className="w-5 h-5 text-zinc-400" />
+        <div className="flex items-center gap-3 p-4 border-b border-zinc-200/60 dark:border-zinc-800/60">
+          <Search className="w-5 h-5 text-violet-500 dark:text-violet-400" />
           <input
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSelectedIndex(-1);
+            }}
             placeholder="Search tools... (e.g., 'password', 'dice', '1-100')"
-            className="flex-1 bg-transparent border-none outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+            className="flex-1 bg-transparent border-none outline-none text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 text-base"
             aria-label="Search input"
           />
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-150"
             aria-label="Close search"
           >
             <X size={20} />
@@ -254,7 +233,7 @@ function SearchModal({ isOpen, onClose }: SearchModalProps) {
         </div>
 
         {results.length > 0 && (
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div className="max-h-[60vh] overflow-y-auto scrollbar-thin">
             {results.map((result, index) => {
               const IconComponent = result.category
                 ? NAV_CATEGORIES.find((c) => c.id === result.category)?.icon ||
@@ -265,21 +244,25 @@ function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   key={result.slug}
                   href={`/${result.slug}`}
                   className={cn(
-                    "flex items-start gap-3 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors",
-                    index === selectedIndex && "bg-zinc-50 dark:bg-zinc-800",
+                    "flex items-start gap-3 p-4 transition-all duration-150 border-l-2",
+                    index === selectedIndex
+                      ? "bg-violet-50 dark:bg-violet-950/20 border-violet-500"
+                      : "bg-transparent border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700",
                   )}
                   onClick={onClose}
                 >
                   <IconComponent className="w-5 h-5 text-zinc-400 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                    <div className="font-semibold text-zinc-900 dark:text-zinc-100">
                       {result.title}
                     </div>
-                    <div className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                    <div className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5">
                       {result.description}
                     </div>
                   </div>
-                  <div className="text-xs text-zinc-400">/{result.slug}</div>
+                  <div className="text-xs text-zinc-400 font-mono">
+                    /{result.slug}
+                  </div>
                 </Link>
               );
             })}
@@ -294,7 +277,7 @@ function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
         {!query && (
           <div className="p-4">
-            <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3 px-2">
+            <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3 px-2">
               Quick Links
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -304,20 +287,18 @@ function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   <Link
                     key={cat.id}
                     href={`/#${cat.id}`}
-                    className="flex items-center gap-2 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                    className="flex items-center gap-2.5 p-3 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/60 hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:text-violet-700 dark:hover:text-violet-300 transition-all duration-150 border border-transparent hover:border-violet-200 dark:hover:border-violet-900/50"
                     onClick={onClose}
                   >
-                    <Icon className="w-4 h-4 text-zinc-500" />
-                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      {cat.title}
-                    </span>
+                    <Icon className="w-4 h-4" />
+                    <span className="text-sm font-medium">{cat.title}</span>
                   </Link>
                 );
               })}
             </div>
             <div className="mt-4 text-xs text-center text-zinc-400">
               Press{" "}
-              <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 font-mono">
+              <kbd className="px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 font-mono border border-zinc-200 dark:border-zinc-700">
                 Esc
               </kbd>{" "}
               to close
@@ -339,10 +320,9 @@ function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const pathname = usePathname();
   const [favorites, setFavorites] = useState<
     Array<{ href: string; title: string }>
-  >([]);
+  >(() => getFavorites().map((f) => ({ href: f.href, title: f.title })));
 
   useEffect(() => {
-    setFavorites(getFavorites().map((f) => ({ href: f.href, title: f.title })));
     const unsub = subscribeUserData(() => {
       setFavorites(
         getFavorites().map((f) => ({ href: f.href, title: f.title })),
@@ -498,9 +478,9 @@ function NavDropdown({ category, pathname }: NavDropdownProps) {
         onMouseEnter={() => setIsOpen(true)}
         onClick={() => setIsOpen((prev) => !prev)}
         className={cn(
-          "flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+          "flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200",
           pathname && category.tools.some((t) => pathname === `/${t}`)
-            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm"
             : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
         )}
         aria-expanded={isOpen}
@@ -510,13 +490,16 @@ function NavDropdown({ category, pathname }: NavDropdownProps) {
         <span>{category.title}</span>
         <ChevronDown
           size={14}
-          className={cn("transition-transform", isOpen && "rotate-180")}
+          className={cn(
+            "transition-transform duration-200",
+            isOpen && "rotate-180",
+          )}
         />
       </button>
 
       {isOpen && (
         <div
-          className="absolute left-0 top-full mt-1 w-56 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 py-2 z-50"
+          className="absolute left-0 top-full mt-2 w-56 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl rounded-xl shadow-xl shadow-zinc-900/10 dark:shadow-black/30 border border-zinc-200/70 dark:border-zinc-800/70 py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-200"
           onMouseLeave={() => setIsOpen(false)}
         >
           {tools.map((tool) => (
@@ -524,10 +507,10 @@ function NavDropdown({ category, pathname }: NavDropdownProps) {
               key={tool.slug}
               href={`/${tool.slug}`}
               className={cn(
-                "flex items-center gap-3 px-4 py-2 text-sm transition-colors",
+                "flex items-center gap-3 px-4 py-2.5 text-sm transition-all duration-150",
                 pathname === `/${tool.slug}`
-                  ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium"
-                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800",
+                  ? "bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 font-semibold"
+                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100",
               )}
               onClick={() => setIsOpen(false)}
             >
@@ -547,42 +530,32 @@ interface HeaderProps {
 
 export function Header({ currentTitle }: HeaderProps) {
   const pathname = usePathname();
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [theme, setTheme] = useState<"light" | "dark">(() => getInitialTheme());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [favorites, setFavorites] = useState<
     Array<{ href: string; title: string }>
-  >([]);
+  >(() => getFavorites().map((f) => ({ href: f.href, title: f.title })));
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const favoritesRef = useRef<HTMLDivElement>(null);
 
-  // Initialize theme
   useEffect(() => {
-    const initialTheme = getInitialTheme();
-    setTheme(initialTheme);
-    applyTheme(initialTheme);
-  }, []);
+    applyTheme(theme);
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {}
+  }, [theme]);
 
-  // Toggle theme
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => {
-      const next = prev === "dark" ? "light" : "dark";
-      try {
-        localStorage.setItem(THEME_KEY, next);
-      } catch {}
-      applyTheme(next);
-      return next;
-    });
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   }, []);
 
   // Handle scroll for sticky header behavior
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setIsScrolled(currentScrollY > 10);
 
       // Hide on scroll down, show on scroll up
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
@@ -600,7 +573,6 @@ export function Header({ currentTitle }: HeaderProps) {
 
   // Load favorites
   useEffect(() => {
-    setFavorites(getFavorites().map((f) => ({ href: f.href, title: f.title })));
     const unsub = subscribeUserData(() => {
       setFavorites(
         getFavorites().map((f) => ({ href: f.href, title: f.title })),
@@ -664,23 +636,33 @@ export function Header({ currentTitle }: HeaderProps) {
     <>
       <header
         className={cn(
-          "sticky top-0 z-40 w-full transition-transform duration-300",
-          "bg-white/80 dark:bg-black/80 backdrop-blur-md",
-          "border-b border-zinc-200 dark:border-zinc-800",
-          isScrolled && "shadow-sm",
+          "sticky top-0 z-40 w-full transition-all duration-200",
+          "bg-white/85 dark:bg-zinc-950/85 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75 dark:supports-[backdrop-filter]:bg-zinc-950/75",
+          "border-b border-zinc-200/60 dark:border-zinc-800/60",
           !isVisible && "-translate-y-full",
+          "shadow-[0_4px_24px_-8px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.3)]",
         )}
       >
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center gap-2 font-black text-xl tracking-tight text-zinc-900 dark:text-zinc-100 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-3 group focus-visible:ring-2 focus-visible:ring-violet-500/50 rounded-xl outline-none pr-2"
+              aria-label="NumberGenerator.ai Home"
             >
-              <Hash size={24} className="text-zinc-400" />
-              <span className="hidden sm:inline">NumberGenerator.ai</span>
-              <span className="sm:hidden">NG.ai</span>
+              <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 dark:from-violet-400 dark:to-indigo-500 text-white shadow-lg shadow-violet-500/25 dark:shadow-violet-400/20 ring-1 ring-violet-500/20 dark:ring-violet-400/20 group-hover:scale-105 group-hover:shadow-violet-500/40 dark:group-hover:shadow-violet-400/30 transition-all duration-200">
+                <Hash size={20} strokeWidth={3} className="relative z-10" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-bold text-lg tracking-tight text-zinc-900 dark:text-zinc-50 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors duration-200 hidden sm:inline">
+                  NumberGenerator.ai
+                </span>
+                <span className="font-bold text-lg tracking-tight text-zinc-900 dark:text-zinc-50 sm:hidden">
+                  NG.ai
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
@@ -698,19 +680,34 @@ export function Header({ currentTitle }: HeaderProps) {
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Search button */}
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(true)}
-                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                className="hidden sm:flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm bg-zinc-100/60 dark:bg-zinc-900/60 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all duration-200 border border-zinc-200/50 dark:border-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-700 group w-64 shadow-sm hover:shadow-md"
                 aria-label="Search tools"
               >
-                <Search size={18} />
-                <span className="hidden md:inline">Search</span>
-                <kbd className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
-                  {isMac ? "Cmd" : "Ctrl"} K
+                <Search
+                  size={16}
+                  className="group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors duration-200"
+                />
+                <span className="flex-1 text-left font-medium">
+                  Search tools...
+                </span>
+                <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-md bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-400 dark:text-zinc-500 font-mono shadow-sm">
+                  {isMac ? "⌘" : "Ctrl"} K
                 </kbd>
+              </button>
+
+              {/* Mobile Search Icon */}
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                className="sm:hidden p-2.5 rounded-xl text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all duration-200"
+                aria-label="Search"
+              >
+                <Search size={22} />
               </button>
 
               {/* Favorites dropdown */}
@@ -720,10 +717,10 @@ export function Header({ currentTitle }: HeaderProps) {
                     type="button"
                     onClick={() => setIsFavoritesOpen((prev) => !prev)}
                     className={cn(
-                      "flex items-center gap-1 p-2 rounded-lg transition-colors",
+                      "flex items-center justify-center h-10 w-10 rounded-xl transition-all duration-200 border shadow-sm",
                       isFavoritesOpen
-                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                        : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800",
+                        ? "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/50"
+                        : "bg-white dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500 border-zinc-200/50 dark:border-zinc-800/50 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 hover:text-amber-500 dark:hover:text-amber-400 hover:border-amber-200/50 dark:hover:border-amber-900/30",
                     )}
                     aria-label="Favorites"
                     aria-expanded={isFavoritesOpen}
@@ -731,27 +728,28 @@ export function Header({ currentTitle }: HeaderProps) {
                     <Star
                       size={18}
                       className={
-                        isCurrentFavorite
-                          ? "fill-yellow-500 text-yellow-500"
-                          : ""
+                        isCurrentFavorite ? "fill-amber-500 text-amber-500" : ""
                       }
                     />
                   </button>
 
                   {isFavoritesOpen && (
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 py-2 z-50">
+                    <div className="absolute right-0 top-full mt-2 w-64 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-zinc-900/10 dark:shadow-black/40 border border-zinc-200/70 dark:border-zinc-800/70 py-2 z-50 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="px-4 py-2 text-xs font-bold text-zinc-400 uppercase tracking-wider bg-zinc-50/60 dark:bg-zinc-900/60 mb-1">
+                        Favorites
+                      </div>
                       {favorites.slice(0, 6).map((fav) => (
                         <Link
                           key={fav.href}
                           href={fav.href}
-                          className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                          className="block px-4 py-2.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors duration-150"
                           onClick={() => setIsFavoritesOpen(false)}
                         >
                           {fav.title}
                         </Link>
                       ))}
                       {favorites.length > 6 && (
-                        <div className="px-4 py-2 text-xs text-zinc-400 border-t border-zinc-100 dark:border-zinc-800">
+                        <div className="px-4 py-2 text-xs text-center text-zinc-400 border-t border-zinc-100 dark:border-zinc-800">
                           +{favorites.length - 6} more
                         </div>
                       )}
@@ -766,10 +764,10 @@ export function Header({ currentTitle }: HeaderProps) {
                   type="button"
                   onClick={handleToggleFavorite}
                   className={cn(
-                    "hidden sm:flex items-center gap-1 p-2 rounded-lg transition-colors",
+                    "hidden sm:flex items-center justify-center h-10 w-10 rounded-xl transition-all duration-200 border shadow-sm",
                     isCurrentFavorite
-                      ? "text-yellow-500 bg-yellow-50 dark:bg-yellow-950/30"
-                      : "text-zinc-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-950/30",
+                      ? "text-rose-500 bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50 shadow-rose-500/10"
+                      : "bg-white dark:bg-zinc-900 text-zinc-400 border-zinc-200/50 dark:border-zinc-800/50 hover:text-rose-500 hover:border-rose-200 dark:hover:border-rose-900/50 hover:bg-rose-50/50 dark:hover:bg-rose-950/20",
                   )}
                   aria-label={
                     isCurrentFavorite
@@ -784,38 +782,30 @@ export function Header({ currentTitle }: HeaderProps) {
                 </button>
               )}
 
+              <div className="h-6 w-px bg-zinc-200/60 dark:bg-zinc-800/60 hidden sm:block mx-1" />
+
               {/* Theme toggle */}
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="flex items-center justify-center p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                className="flex items-center justify-center h-10 w-10 rounded-xl text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all duration-200"
                 aria-label={
                   theme === "dark"
                     ? "Switch to light mode"
                     : "Switch to dark mode"
                 }
               >
-                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
               </button>
 
               {/* Mobile menu button */}
               <button
                 type="button"
                 onClick={() => setIsMobileNavOpen(true)}
-                className="lg:hidden flex items-center justify-center p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                className="lg:hidden flex items-center justify-center h-10 w-10 rounded-xl text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 ml-1"
                 aria-label="Open menu"
               >
-                <Menu size={18} />
-              </button>
-
-              {/* Mobile search button */}
-              <button
-                type="button"
-                onClick={() => setIsSearchOpen(true)}
-                className="lg:hidden flex items-center justify-center p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                aria-label="Search"
-              >
-                <Search size={18} />
+                <Menu size={24} />
               </button>
             </div>
           </div>
@@ -823,10 +813,7 @@ export function Header({ currentTitle }: HeaderProps) {
       </header>
 
       {/* Search modal */}
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
+      {isSearchOpen && <SearchModal onClose={() => setIsSearchOpen(false)} />}
 
       {/* Mobile navigation */}
       <MobileNav
@@ -840,41 +827,6 @@ export function Header({ currentTitle }: HeaderProps) {
 // Mobile bottom navigation bar (PWA pattern)
 export function MobileBottomNav() {
   const pathname = usePathname();
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [favorites, setFavorites] = useState<
-    Array<{ href: string; title: string }>
-  >([]);
-
-  useEffect(() => {
-    const initialTheme = getInitialTheme();
-    setTheme(initialTheme);
-  }, []);
-
-  useEffect(() => {
-    setFavorites(getFavorites().map((f) => ({ href: f.href, title: f.title })));
-    const unsub = subscribeUserData(() => {
-      setFavorites(
-        getFavorites().map((f) => ({ href: f.href, title: f.title })),
-      );
-    });
-    return unsub;
-  }, []);
-
-  const navItems: Array<{ href: string; icon: any; label: string }> = [
-    { href: "/", icon: Hash, label: "Home" },
-    { href: "/1-100", icon: Dice1, label: "Numbers" },
-    { href: "/password-strong", icon: Lock, label: "Password" },
-    { href: "/dice-roller", icon: Box, label: "Dice" },
-  ];
-
-  if (favorites.length > 0) {
-    navItems.push({ href: favorites[0].href, icon: Star, label: "Favorites" });
-  } else {
-    navItems.push({ href: "/coin-flip", icon: Circle, label: "Coin" });
-  }
-
-  // Import icons after component definition to avoid issues
-  const HomeIcon = navItems[0].href === "/" ? Hash : navItems[0].icon;
 
   return (
     <nav

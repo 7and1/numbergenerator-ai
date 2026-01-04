@@ -1,13 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Heart, Shield, Zap, Users } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui";
 import { PAGE_BREADCRUMBS } from "@/lib/breadcrumbs";
+
+const BASE_URL = "https://numbergenerator.ai";
 
 export const metadata: Metadata = {
   title: "About Us",
   description:
     "Learn about NumberGenerator.ai - free, secure random number generators with no tracking, no ads, and no data collection.",
+  alternates: {
+    canonical: `${BASE_URL}/about/`,
+  },
+  openGraph: {
+    title: "About NumberGenerator.ai",
+    description:
+      "Learn about NumberGenerator.ai - free, secure random number generators with no tracking, no ads, and no data collection.",
+    url: `${BASE_URL}/about/`,
+    siteName: "NumberGenerator.ai",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About NumberGenerator.ai",
+    description:
+      "Learn about NumberGenerator.ai - free, secure random number generators with no tracking, no ads, and no data collection.",
+  },
 };
 
 export default function AboutPage() {

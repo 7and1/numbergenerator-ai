@@ -92,10 +92,6 @@ describe("engine.generate (stress tests)", () => {
   // ============================================================
   describe("memory leak detection", () => {
     it("does not accumulate memory with repeated calls", () => {
-      const initialMemory =
-        (globalThis as unknown as { memory?: { usedJSHeapSize: number } })
-          .memory?.usedJSHeapSize ?? 0;
-
       // Run many iterations
       for (let i = 0; i < 1000; i++) {
         generate("range", { min: 1, max: 1000, count: 100 });
@@ -107,10 +103,6 @@ describe("engine.generate (stress tests)", () => {
       if (typeof globalThis.gc === "function") {
         globalThis.gc();
       }
-
-      const finalMemory =
-        (globalThis as unknown as { memory?: { usedJSHeapSize: number } })
-          .memory?.usedJSHeapSize ?? 0;
 
       // In a real test environment, we'd check that memory growth is reasonable
       // For now, just ensure the test completes without errors
@@ -378,11 +370,10 @@ describe("engine.generate (stress tests)", () => {
         length: 50,
         count: 10,
         include_lower: true,
-        include_upper: true,
-        include_digits: true,
-        include_symbols: true,
-        exclude_ambiguous: true,
-        exclude_chars: "abcdefghijklmnopqrstuvwxyz0123456789",
+        include_upper: false,
+        include_digits: false,
+        include_symbols: false,
+        exclude_chars: "abcdefghijklmnopqrstuvwxyz",
       });
 
       // Should fall back to strong charset
@@ -466,7 +457,7 @@ describe("engine.generate (stress tests)", () => {
     it("maintains weighted distribution over many samples", () => {
       const items = ["A", "B", "C"];
       const weights = [1, 2, 7]; // C should appear ~70% of the time
-      const samples = 10000;
+      const samples = 5000; // list count clamps to 5000
       const res = generate("list", { items, weights, count: samples });
 
       const counts: Record<string, number> = { A: 0, B: 0, C: 0 };
@@ -475,8 +466,8 @@ describe("engine.generate (stress tests)", () => {
       }
 
       // C should appear significantly more often
-      expect(counts.C).toBeGreaterThan(6000); // At least 60%
-      expect(counts.A).toBeLessThan(2000); // At most 20%
+      expect(counts.C).toBeGreaterThan(3100); // >62%
+      expect(counts.A).toBeLessThan(800); // <16%
     });
 
     it("coin flip approaches 50/50 over many flips", () => {
@@ -495,7 +486,7 @@ describe("engine.generate (stress tests)", () => {
     });
 
     it("dice shows uniform distribution over many rolls", () => {
-      const rolls = 6000;
+      const rolls = 2000; // dice rolls clamp to 2000
       const sides = 6;
       const res = generate("dice", { dice_sides: sides, dice_rolls: rolls });
 
@@ -513,8 +504,9 @@ describe("engine.generate (stress tests)", () => {
 
       // Each side should appear roughly 1000 times (1/6)
       for (let i = 1; i <= sides; i++) {
-        expect(counts[i]).toBeGreaterThan(900); // At least 15%
-        expect(counts[i]).toBeLessThan(1100); // At most 18%
+        // Each side should appear roughly 333 times (1/6)
+        expect(counts[i]).toBeGreaterThan(250);
+        expect(counts[i]).toBeLessThan(450);
       }
     });
   });

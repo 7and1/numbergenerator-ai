@@ -4,7 +4,7 @@
  */
 
 import type { GeneratorParams } from "../types";
-import { clampInt, safeFiniteNumber } from "../core/arrays";
+import { clampInt } from "../core/arrays";
 import { randomIntInclusive, setCurrentMode } from "../core/samplers";
 
 export function generateFraction(params: GeneratorParams): {
